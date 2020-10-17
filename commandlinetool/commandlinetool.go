@@ -1,5 +1,9 @@
 package commandlinetool
 
+import (
+	"errors"
+)
+
 type CommandLineTool struct {
 	Version      string         `yaml:"cwlVersion"`
 	Class        string         `yaml:"class"`
@@ -16,4 +20,46 @@ type requirement struct {
 	DockerPull string `yaml:"dockerPull"`
 	RamMin     string `yaml:"ramMin"`
 	CpuMin     string `yaml:"cpuMin"`
+}
+
+// assert version v1.0
+type version string
+
+func (v *version) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
+	var (
+		str version
+	)
+	// unmarshal
+	if err := unmarshal(&str); err != nil {
+		return err
+	}
+	// version assert
+	if str != "v1.0" {
+		return errors.New("Only support version v1.0")
+	}
+
+	*v = str
+
+	return nil
+}
+
+// assert class CommandLineTool
+type class string
+
+func (c *class) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
+	var (
+		str class
+	)
+	// unmarshal
+	if err := unmarshal(&str); err != nil {
+		return err
+	}
+	// version assert
+	if str != "CommandLineTool" {
+		return errors.New("Not class CommandLineTool")
+	}
+
+	*c = str
+
+	return nil
 }

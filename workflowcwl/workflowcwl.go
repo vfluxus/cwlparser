@@ -2,12 +2,13 @@ package workflowcwl
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
-	"github.com/vfluxus/cwlparser/commandlinetool"
-
 	"gopkg.in/yaml.v2"
+
+	"github.com/vfluxus/cwlparser/commandlinetool"
 )
 
 type WorkflowCWL struct {
@@ -24,21 +25,26 @@ type requirement struct {
 	Class string `yaml:"class"`
 }
 
+// Unmarshal ...
 func (wfCWL *WorkflowCWL) Unmarshal(folder string, file string) (err error) {
 	if !strings.Contains(file, ".cwl") {
 		return errors.New("Not cwl file")
 	}
-
+	// open workflow cwl file
 	filePath := folder + "/" + file
 	fileData, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
-
+	// unmarshal
 	if err := yaml.Unmarshal(fileData, wfCWL); err != nil {
 		return err
 	}
-
+	// add children
+	if err := wfCWL.addChildren(); err != nil {
+		return err
+	}
+	// loop through step, read & unmarshal each file
 	for stepIndex := range wfCWL.Steps {
 		stepFilePath := folder + "/" + wfCWL.Steps[stepIndex].Run
 		stepFileData, err := ioutil.ReadFile(stepFilePath)
@@ -53,6 +59,33 @@ func (wfCWL *WorkflowCWL) Unmarshal(folder string, file string) (err error) {
 			return err
 		}
 		wfCWL.Steps[stepIndex].CommandLineTool = newCmdLineTool
+	}
+
+	return nil
+}
+
+// addChildren create map[stepName]step and loop through all to add children
+func (wfCWL *WorkflowCWL) addChildren() (err error) {
+	if wfCWL == nil || len(wfCWL.Steps) < 1 {
+		return errors.New("Empty workflow")
+	}
+
+	// create map and append to start node
+	var (
+		stepMap = make(map[string]*Step)
+	)
+
+	for stepIndex := range wfCWL.Steps {
+		if _, ok := stepMap[wfCWL.Steps[stepIndex].Name]; ok {
+			return fmt.Errorf("Duplicate step name: %v", wfCWL.Steps[stepIndex].Name)
+		}
+		stepMap[wfCWL.Steps[stepIndex].Name] = wfCWL.Steps[stepIndex]
+	}
+
+	for key := range stepMap {
+		for parentIndex := range stepMap[key].Parents {
+			stepMap[stepMap[key].Parents[parentIndex]].Children = append(stepMap[stepMap[key].Parents[parentIndex]].Children, stepMap[key].Name)
+		}
 	}
 
 	return nil

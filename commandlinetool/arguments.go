@@ -4,13 +4,13 @@ import (
 	"fmt"
 )
 
+type arguments []*argument
+
 type argument struct {
 	Position   int    `yaml:"position"`
 	ShellQuote bool   `yaml:"shellQuote"`
 	ValueFrom  string `yaml:"valueFrom"`
 }
-
-type arguments []*argument
 
 func (args *arguments) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
 	var (

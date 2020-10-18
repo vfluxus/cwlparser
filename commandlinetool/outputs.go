@@ -6,6 +6,8 @@ import (
 	"github.com/vfluxus/cwlparser/libs"
 )
 
+type outputs []*output
+
 type output struct {
 	Name           string        `yaml:""`
 	Type           []string      `yaml:"type"`
@@ -16,8 +18,6 @@ type output struct {
 type outputBinding struct {
 	Glob []string `yaml:"glob"`
 }
-
-type outputs []*output
 
 func (o *outputs) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
 	var (
@@ -49,7 +49,7 @@ func (o *outputs) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
 				}
 			}
 
-			if outputBind, ok := outputCast["secondaryFiles"]; ok {
+			if outputBind, ok := outputCast["outputBinding"]; ok {
 				switch outputBindCast := outputBind.(type) {
 				case map[interface{}]interface{}:
 					if glob, ok := outputBindCast["glob"]; ok {

@@ -18,8 +18,8 @@ type CommandLineTool struct {
 type requirement struct {
 	Class      string `yaml:"class"`
 	DockerPull string `yaml:"dockerPull"`
-	RamMin     string `yaml:"ramMin"`
-	CpuMin     string `yaml:"cpuMin"`
+	RamMin     int    `yaml:"ramMin"`
+	CpuMin     int    `yaml:"cpuMin"`
 }
 
 // assert version v1.0

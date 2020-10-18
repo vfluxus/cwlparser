@@ -2,16 +2,20 @@ package workflowcwl
 
 import (
 	"fmt"
+	"strings"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/vfluxus/cwlparser/commandlinetool"
-
 	"github.com/vfluxus/cwlparser/libs"
-	"gopkg.in/yaml.v2"
 )
 
-type step struct {
+type Step struct {
 	Name            string
 	Run             string
+	Scatter         string `yaml:"scatter"`
+	Parents         []string
+	Children        []string
 	In              stepIns  `yaml:"in"`
 	Out             stepOuts `yaml:"out"`
 	CommandLineTool *commandlinetool.CommandLineTool
@@ -60,7 +64,7 @@ func (si *stepIns) UnmarshalYAML(unmarshal func(interface{}) error) (err error) 
 			}
 
 		case string:
-			newStepIn.ValueFrom = stepInCast
+			newStepIn.Source = stepInCast
 
 		default:
 			return fmt.Errorf("Can not cast stepIn. Data: %v. Type: %T", stepInCast, stepInCast)
@@ -124,19 +128,39 @@ func (so *stepOuts) UnmarshalYAML(unmarshal func(interface{}) error) (err error)
 
 // -------------------------------------------------------------------------------------------------------------------------
 // -------------------------------------------------------- STEPS ----------------------------------------------------------
-type steps []*step
+type steps []*Step
+
+func addParent(parents *[]string, source string) (err error) {
+	strSl := strings.Split(source, "/")
+	if len(strSl) < 2 {
+		return nil
+	}
+
+	if len(strSl) > 2 {
+		return fmt.Errorf("Invalid stepInSource. Require len: 2. Data: %v", source)
+	}
+
+	// check if parent exist in list
+	for _, parent := range *parents {
+		if parent == strSl[0] {
+			return nil
+		}
+	}
+	*parents = append(*parents, strSl[0])
+	return nil
+}
 
 func (s *steps) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
 	var (
 		stepMap = make(map[string]interface{})
-		stepSl  []*step
+		stepSl  []*Step
 	)
 	if err := unmarshal(&stepMap); err != nil {
 		return err
 	}
 
 	for key := range stepMap {
-		newStep := new(step)
+		newStep := new(Step)
 		newStep.Name = key
 
 		stepByte, err := yaml.Marshal(stepMap[key])
@@ -145,6 +169,13 @@ func (s *steps) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
 		}
 		if err := yaml.Unmarshal(stepByte, newStep); err != nil {
 			return err
+		}
+
+		// loop through step in to find parrent
+		for stepInIndex := range newStep.In {
+			if err := addParent(&newStep.Parents, newStep.In[stepInIndex].Source); err != nil {
+				return nil
+			}
 		}
 
 		stepSl = append(stepSl, newStep)

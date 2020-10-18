@@ -28,6 +28,7 @@ func (bc *baseCommand) UnmarshalYAML(unmarshal func(interface{}) error) (err err
 		err2             error
 	)
 	if err2 = unmarshal(&strSlBaseCommand); err2 == nil {
+		*bc = strSlBaseCommand
 		return nil
 	}
 

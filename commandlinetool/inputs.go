@@ -3,21 +3,23 @@ package commandlinetool
 import (
 	"fmt"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/vfluxus/cwlparser/libs"
 )
 
 type inputs []*input
 
 type input struct {
-	Name           string       `yaml:""`
-	From           string       `yaml:""`
-	Type           []string     `yaml:""`
-	SecondaryFiles []string     `yaml:""`
-	InputBinding   inputBinding `yaml:""`
+	Name           string        `yaml:""`
+	Type           []string      `yaml:""`
+	SecondaryFiles []string      `yaml:""`
+	InputBinding   *inputBinding `yaml:"inputBinding"`
 }
 
 type inputBinding struct {
-	Position int
+	Position int    `yaml:"position"`
+	Prefix   string `yaml:"prefix"`
 }
 
 func (i *inputs) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
@@ -49,22 +51,16 @@ func (i *inputs) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
 				}
 			}
 
-			if inputBind, ok := inputCast["position"]; ok {
-				switch inputBindCast := inputBind.(type) {
-				case map[interface{}]interface{}:
-					if position, ok := inputBindCast["position"]; ok {
-						switch positionCast := position.(type) {
-						case int:
-							newInput.InputBinding.Position = positionCast
-
-						default:
-							return fmt.Errorf("Can not cast input positon, data: %v, type: %T", position, position)
-						}
-					}
-
-				default:
-					return fmt.Errorf("Can not cast input bind, data: %v, type: %T", inputBind, inputBind)
+			if inputBind, ok := inputCast["inputBinding"]; ok {
+				newInputBind := new(inputBinding)
+				inputBindByte, err := yaml.Marshal(inputBind)
+				if err != nil {
+					return err
 				}
+				if err := yaml.Unmarshal(inputBindByte, newInputBind); err != nil {
+					return err
+				}
+				newInput.InputBinding = newInputBind
 			}
 
 		case string:

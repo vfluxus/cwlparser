@@ -6,13 +6,13 @@ import (
 	"github.com/vfluxus/cwlparser/libs"
 )
 
+type outputs []*output
+
 type output struct {
 	Name         string
 	Type         []string
 	OutputSource []string
 }
-
-type outputs []*output
 
 func (o *outputs) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
 	var (

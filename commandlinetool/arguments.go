@@ -4,9 +4,9 @@ import (
 	"fmt"
 )
 
-type arguments []*argument
+type arguments []*Argument
 
-type argument struct {
+type Argument struct {
 	Position   int    `yaml:"position"`
 	ShellQuote bool   `yaml:"shellQuote"`
 	ValueFrom  string `yaml:"valueFrom"`
@@ -16,7 +16,7 @@ func (args *arguments) UnmarshalYAML(unmarshal func(interface{}) error) (err err
 	var (
 		err1  error // unmarshal to argument struct
 		err2  error // unmarshal to []string
-		argSl []*argument
+		argSl []*Argument
 	)
 	// unmarshal to argument struct
 	if err1 = unmarshal(&argSl); err1 == nil {
@@ -30,7 +30,7 @@ func (args *arguments) UnmarshalYAML(unmarshal func(interface{}) error) (err err
 	)
 	if err2 = unmarshal(&strSl); err2 == nil {
 		for strSlIndex := range strSl {
-			newArg := &argument{
+			newArg := &Argument{
 				ValueFrom: strSl[strSlIndex],
 			}
 			argSl = append(argSl, newArg)

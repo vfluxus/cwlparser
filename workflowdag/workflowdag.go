@@ -43,6 +43,7 @@ type stepInputBinding struct {
 
 type stepOutput struct {
 	Name           string
+	WorkflowName   string
 	Type           []string
 	Patern         []string
 	Regex          []string
@@ -52,4 +53,5 @@ type stepOutput struct {
 type Argument struct {
 	Postition int
 	Input     *stepInput
+	Prefix    string
 }

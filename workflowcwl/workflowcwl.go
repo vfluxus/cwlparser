@@ -58,6 +58,9 @@ func (wfCWL *WorkflowCWL) Unmarshal(folder string, file string) (err error) {
 		if err := yaml.Unmarshal(stepFileData, newCmdLineTool); err != nil {
 			return err
 		}
+		if err := addWorkflowNameAndFrom(wfCWL.Steps[stepIndex], newCmdLineTool); err != nil {
+			return err
+		}
 		wfCWL.Steps[stepIndex].CommandLineTool = newCmdLineTool
 	}
 
@@ -85,6 +88,31 @@ func (wfCWL *WorkflowCWL) addChildren() (err error) {
 	for key := range stepMap {
 		for parentIndex := range stepMap[key].Parents {
 			stepMap[stepMap[key].Parents[parentIndex]].Children = append(stepMap[stepMap[key].Parents[parentIndex]].Children, stepMap[key].Name)
+		}
+	}
+
+	return nil
+}
+
+func addWorkflowNameAndFrom(step *Step, cmdlinetool *commandlinetool.CommandLineTool) (err error) {
+	var (
+		stepInSourceMap = make(map[string]string)
+	)
+	for stepInIndex := range step.In {
+		if _, ok := stepInSourceMap[step.In[stepInIndex].Name]; ok {
+			return errors.New("Duplicate step input")
+		}
+		stepInSourceMap[step.In[stepInIndex].Name] = step.In[stepInIndex].Source
+	}
+
+	for cmdInputIndex := range cmdlinetool.Inputs {
+		if source, ok := stepInSourceMap[cmdlinetool.Inputs[cmdInputIndex].Name]; ok {
+			if sourceSl := strings.Split(source, "/"); len(sourceSl) == 2 {
+				cmdlinetool.Inputs[cmdInputIndex].From = sourceSl[0]
+				cmdlinetool.Inputs[cmdInputIndex].WorkflowName = sourceSl[1]
+				continue
+			}
+			cmdlinetool.Inputs[cmdInputIndex].WorkflowName = source
 		}
 	}
 

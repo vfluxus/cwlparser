@@ -1,0 +1,1149 @@
+{
+    "Version": "v1.0",
+    "Doc": "This workflow is used to process in DG4VN project \n",
+    "ID": "mash_workflow",
+    "Requirements": [
+        {
+            "Class": "StepInputExpressionRequirement"
+        }
+    ],
+    "Inputs": [
+        {
+            "Name": "indexed_reference_fasta",
+            "Type": [
+                "File"
+            ],
+            "SecondaryFiles": [
+                ".64.amb",
+                ".64.ann",
+                ".64.bwt",
+                ".64.pac",
+                ".64.sa",
+                ".64.alt",
+                ".dict",
+                ".fai"
+            ]
+        },
+        {
+            "Name": "indexed_reference_indels_hg38",
+            "Type": [
+                "File"
+            ],
+            "SecondaryFiles": null
+        },
+        {
+            "Name": "indexed_reference_know_indels_hg38",
+            "Type": [
+                "File"
+            ],
+            "SecondaryFiles": null
+        },
+        {
+            "Name": "indexed_reference_dpsnp_hg38",
+            "Type": [
+                "File"
+            ],
+            "SecondaryFiles": null
+        },
+        {
+            "Name": "output_basename",
+            "Type": [
+                "string"
+            ],
+            "SecondaryFiles": null
+        },
+        {
+            "Name": "input_fastqs",
+            "Type": [
+                "File[]"
+            ],
+            "SecondaryFiles": null
+        }
+    ],
+    "Outputs": [
+        {
+            "Name": "variants_calling",
+            "Type": [
+                "File"
+            ],
+            "OutputSource": [
+                "VariantCalling/output"
+            ]
+        }
+    ],
+    "Steps": [
+        {
+            "Name": "AlignmentReads",
+            "Run": "tasks/AlignBwaMem.cwl",
+            "Scatter": "",
+            "Parents": null,
+            "Children": [
+                "FixMate"
+            ],
+            "In": [
+                {
+                    "Name": "input_fastqs",
+                    "Source": "input_fastqs",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "output_aligned_reads",
+                    "Source": "output_basename",
+                    "ValueFrom": "$(self + \".sam\")"
+                },
+                {
+                    "Name": "indexed_reference_fasta",
+                    "Source": "indexed_reference_fasta",
+                    "ValueFrom": ""
+                }
+            ],
+            "Out": [
+                {
+                    "Name": "output"
+                }
+            ],
+            "CommandLineTool": {
+                "Version": "v1.0",
+                "Class": "CommandLineTool",
+                "ID": "align_bwa_mem",
+                "Requirements": [
+                    {
+                        "Class": "DockerRequirement",
+                        "DockerPull": "vinbdi/biotools",
+                        "RamMin": 0,
+                        "CpuMin": 0
+                    },
+                    {
+                        "Class": "ResourceRequirement",
+                        "DockerPull": "",
+                        "RamMin": 4096,
+                        "CpuMin": 0
+                    }
+                ],
+                "Inputs": [
+                    {
+                        "Name": "indexed_reference_fasta",
+                        "WorkflowName": "indexed_reference_fasta",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": [
+                            ".64.amb",
+                            ".64.ann",
+                            ".64.bwt",
+                            ".64.pac",
+                            ".64.sa",
+                            ".64.alt",
+                            ".dict",
+                            ".fai"
+                        ],
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "output_aligned_reads",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "input_fastqs",
+                        "WorkflowName": "input_fastqs",
+                        "From": "",
+                        "Type": [
+                            "File[]"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    }
+                ],
+                "BaseCommand": [
+                    "bwa",
+                    "mem"
+                ],
+                "Arguments": [
+                    {
+                        "Position": 0,
+                        "ShellQuote": false,
+                        "ValueFrom": "-M -Y -t 16 -K 100000000 -p $(inputs.indexed_reference_fasta) $(inputs.input_fastqs) -o $(inputs.output_aligned_reads)"
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "output",
+                        "Type": [
+                            "File"
+                        ],
+                        "OutputBinding": {
+                            "Glob": [
+                                "*.sam"
+                            ]
+                        },
+                        "SecondaryFiles": null
+                    }
+                ]
+            }
+        },
+        {
+            "Name": "FixMate",
+            "Run": "tasks/FixMate.cwl",
+            "Scatter": "",
+            "Parents": [
+                "AlignmentReads"
+            ],
+            "Children": [
+                "MarkDuplicates"
+            ],
+            "In": [
+                {
+                    "Name": "input_sam",
+                    "Source": "AlignmentReads/output",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "output_fixmate_bam",
+                    "Source": "output_basename",
+                    "ValueFrom": "$(self + \".lanefixed.bam\")"
+                }
+            ],
+            "Out": [
+                {
+                    "Name": "output"
+                }
+            ],
+            "CommandLineTool": {
+                "Version": "v1.0",
+                "Class": "CommandLineTool",
+                "ID": "fix_mate",
+                "Requirements": [
+                    {
+                        "Class": "DockerRequirement",
+                        "DockerPull": "vinbdi/biotools",
+                        "RamMin": 0,
+                        "CpuMin": 0
+                    },
+                    {
+                        "Class": "ResourceRequirement",
+                        "DockerPull": "",
+                        "RamMin": 2000,
+                        "CpuMin": 0
+                    }
+                ],
+                "Inputs": [
+                    {
+                        "Name": "input_sam",
+                        "WorkflowName": "output",
+                        "From": "AlignmentReads",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "output_fixmate_bam",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    }
+                ],
+                "BaseCommand": [
+                    "samtools",
+                    "fixmate"
+                ],
+                "Arguments": [
+                    {
+                        "Position": 0,
+                        "ShellQuote": false,
+                        "ValueFrom": "$(inputs.input_sam) -O bam $(inputs.output_fixmate_bam)"
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "output",
+                        "Type": [
+                            "File"
+                        ],
+                        "OutputBinding": {
+                            "Glob": [
+                                "*.bam$"
+                            ]
+                        },
+                        "SecondaryFiles": [
+                            "^.bai",
+                            "^.bam.md5"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "Name": "SetNmMdAndUqTags",
+            "Run": "tasks/SetNmMdAndUqTags.cwl",
+            "Scatter": "",
+            "Parents": [
+                "AddReplaceReadGroups"
+            ],
+            "Children": [
+                "ApplyBQSR",
+                "RecalibrateBQSR"
+            ],
+            "In": [
+                {
+                    "Name": "input_bam",
+                    "Source": "AddReplaceReadGroups/output",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "output_add_replace_rdg",
+                    "Source": "output_basename",
+                    "ValueFrom": "$(self + \".tagged.sorted.md.bam\")"
+                },
+                {
+                    "Name": "indexed_reference_fasta",
+                    "Source": "indexed_reference_fasta",
+                    "ValueFrom": ""
+                }
+            ],
+            "Out": [
+                {
+                    "Name": "output"
+                }
+            ],
+            "CommandLineTool": {
+                "Version": "v1.0",
+                "Class": "CommandLineTool",
+                "ID": "sort_bam",
+                "Requirements": [
+                    {
+                        "Class": "DockerRequirement",
+                        "DockerPull": "vinbdi/biotools",
+                        "RamMin": 0,
+                        "CpuMin": 0
+                    },
+                    {
+                        "Class": "ResourceRequirement",
+                        "DockerPull": "",
+                        "RamMin": 2000,
+                        "CpuMin": 0
+                    }
+                ],
+                "Inputs": [
+                    {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "AddReplaceReadGroups",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "indexed_reference_fasta",
+                        "WorkflowName": "indexed_reference_fasta",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": [
+                            ".64.amb",
+                            ".64.ann",
+                            ".64.bwt",
+                            ".64.pac",
+                            ".64.sa",
+                            ".64.alt",
+                            ".dict",
+                            ".fai"
+                        ],
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "output_add_replace_rdg",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    }
+                ],
+                "BaseCommand": [
+                    "picard",
+                    "SetNmMdAndUqTags"
+                ],
+                "Arguments": [
+                    {
+                        "Position": 0,
+                        "ShellQuote": false,
+                        "ValueFrom": "I=$(inputs.input_bam) O=$(inputs.output_add_replace_rdg) CREATE_INDEX=true R=$(inputs.indexed_reference_fasta)"
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "output",
+                        "Type": [
+                            "File"
+                        ],
+                        "OutputBinding": {
+                            "Glob": [
+                                "*.tagged.sorted.md.bam"
+                            ]
+                        },
+                        "SecondaryFiles": [
+                            "^.bai",
+                            "^.bam.md5"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "Name": "ApplyBQSR",
+            "Run": "tasks/ApplyBQSR.cwl",
+            "Scatter": "",
+            "Parents": [
+                "SetNmMdAndUqTags",
+                "RecalibrateBQSR"
+            ],
+            "Children": [
+                "VariantCalling"
+            ],
+            "In": [
+                {
+                    "Name": "indexed_reference_fasta",
+                    "Source": "indexed_reference_fasta",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "input_bam",
+                    "Source": "SetNmMdAndUqTags/output",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "input_recalibrate_bqsr",
+                    "Source": "RecalibrateBQSR/output",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "output_apply_bqsr",
+                    "Source": "output_basename",
+                    "ValueFrom": "$(self + \".bqsr.sorted.md.bam\")"
+                }
+            ],
+            "Out": [
+                {
+                    "Name": "output"
+                }
+            ],
+            "CommandLineTool": {
+                "Version": "v1.0",
+                "Class": "CommandLineTool",
+                "ID": "sort_bam",
+                "Requirements": [
+                    {
+                        "Class": "DockerRequirement",
+                        "DockerPull": "vinbdi/biotools",
+                        "RamMin": 0,
+                        "CpuMin": 0
+                    },
+                    {
+                        "Class": "ResourceRequirement",
+                        "DockerPull": "",
+                        "RamMin": 2000,
+                        "CpuMin": 0
+                    }
+                ],
+                "Inputs": [
+                    {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "SetNmMdAndUqTags",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "indexed_reference_fasta",
+                        "WorkflowName": "indexed_reference_fasta",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": [
+                            ".64.amb",
+                            ".64.ann",
+                            ".64.bwt",
+                            ".64.pac",
+                            ".64.sa",
+                            ".64.alt",
+                            ".dict",
+                            ".fai"
+                        ],
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "input_recalibrate_bqsr",
+                        "WorkflowName": "output",
+                        "From": "RecalibrateBQSR",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "output_apply_bqsr",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    }
+                ],
+                "BaseCommand": [
+                    "gatk",
+                    "ApplyBQSR"
+                ],
+                "Arguments": [
+                    {
+                        "Position": 0,
+                        "ShellQuote": false,
+                        "ValueFrom": "-R $(inputs.indexed_reference_fasta) -I $(inputs.input_bam) -bqsr $(input.input_recalibrate_bqsr) -O $(inputs.output.output_apply_bqsr) --static-quantized-quals 10 --static-quantized-quals 20 --static-quantized-quals 30 --add-output-sam-program-record --create-output-bam-md5 --use-original-qualities"
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "output",
+                        "Type": [
+                            "File"
+                        ],
+                        "OutputBinding": {
+                            "Glob": [
+                                "*.bam$"
+                            ]
+                        },
+                        "SecondaryFiles": [
+                            "^.bai",
+                            "^.bam.md5"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "Name": "MarkDuplicates",
+            "Run": "tasks/MarkDuplicates.cwl",
+            "Scatter": "",
+            "Parents": [
+                "FixMate"
+            ],
+            "Children": [
+                "SortBam"
+            ],
+            "In": [
+                {
+                    "Name": "input_bam",
+                    "Source": "FixMate/output",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "output_md_bam",
+                    "Source": "output_basename",
+                    "ValueFrom": "$(self + \".md.bam\")"
+                },
+                {
+                    "Name": "output_report_txt",
+                    "Source": "output_basename",
+                    "ValueFrom": "$(self + \".bam.txt\")"
+                }
+            ],
+            "Out": [
+                {
+                    "Name": "output"
+                }
+            ],
+            "CommandLineTool": {
+                "Version": "v1.0",
+                "Class": "CommandLineTool",
+                "ID": "fix_mate",
+                "Requirements": [
+                    {
+                        "Class": "DockerRequirement",
+                        "DockerPull": "vinbdi/biotools",
+                        "RamMin": 0,
+                        "CpuMin": 0
+                    },
+                    {
+                        "Class": "ResourceRequirement",
+                        "DockerPull": "",
+                        "RamMin": 2000,
+                        "CpuMin": 0
+                    }
+                ],
+                "Inputs": [
+                    {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "FixMate",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "output_md_bam",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "output_report_txt",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    }
+                ],
+                "BaseCommand": [
+                    "picard MarkDuplicates"
+                ],
+                "Arguments": [
+                    {
+                        "Position": 0,
+                        "ShellQuote": false,
+                        "ValueFrom": "I=$(inputs.input_bam) O=$(inputs.output_md_bam) M=$(inputs.output_report_txt) VALIDATION_STRINGENCY=SILENT OPTICAL_DUPLICATE_PIXEL_DISTANCE=2500 ASSUME_SORT_ORDER=queryname CREATE_MD5_FILE=false"
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "output",
+                        "Type": [
+                            "File"
+                        ],
+                        "OutputBinding": {
+                            "Glob": [
+                                "*.md.bam"
+                            ]
+                        },
+                        "SecondaryFiles": [
+                            "^.bai",
+                            "^.bam.md5"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "Name": "SortBam",
+            "Run": "tasks/SortBam.cwl",
+            "Scatter": "",
+            "Parents": [
+                "MarkDuplicates"
+            ],
+            "Children": [
+                "AddReplaceReadGroups"
+            ],
+            "In": [
+                {
+                    "Name": "input_bam",
+                    "Source": "MarkDuplicates/output",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "output_sorted_bam",
+                    "Source": "output_basename",
+                    "ValueFrom": "$(self + \".sorted.md.bam\")"
+                }
+            ],
+            "Out": [
+                {
+                    "Name": "output"
+                }
+            ],
+            "CommandLineTool": {
+                "Version": "v1.0",
+                "Class": "CommandLineTool",
+                "ID": "sort_bam",
+                "Requirements": [
+                    {
+                        "Class": "DockerRequirement",
+                        "DockerPull": "vinbdi/biotools",
+                        "RamMin": 0,
+                        "CpuMin": 0
+                    },
+                    {
+                        "Class": "ResourceRequirement",
+                        "DockerPull": "",
+                        "RamMin": 2000,
+                        "CpuMin": 0
+                    }
+                ],
+                "Inputs": [
+                    {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "MarkDuplicates",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "output_sorted_bam",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    }
+                ],
+                "BaseCommand": [
+                    "picard",
+                    "SortSam"
+                ],
+                "Arguments": [
+                    {
+                        "Position": 0,
+                        "ShellQuote": false,
+                        "ValueFrom": "I=$(inputs.input_bam) O=$(inputs.output_sorted_bam) SO=coordinate CREATE_INDEX=false CREATE_MD5_FILE=false"
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "output",
+                        "Type": [
+                            "File"
+                        ],
+                        "OutputBinding": {
+                            "Glob": [
+                                "*.bam$"
+                            ]
+                        },
+                        "SecondaryFiles": [
+                            "^.bai",
+                            "^.bam.md5"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "Name": "AddReplaceReadGroups",
+            "Run": "tasks/AddReplaceReadGroups.cwl",
+            "Scatter": "",
+            "Parents": [
+                "SortBam"
+            ],
+            "Children": [
+                "SetNmMdAndUqTags"
+            ],
+            "In": [
+                {
+                    "Name": "common_basename",
+                    "Source": "output_basename",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "input_bam",
+                    "Source": "SortBam/output",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "output_add_replace_rdg",
+                    "Source": "output_basename",
+                    "ValueFrom": "$(self + \".grp.sorted.md.bam\")"
+                }
+            ],
+            "Out": [
+                {
+                    "Name": "output"
+                }
+            ],
+            "CommandLineTool": {
+                "Version": "v1.0",
+                "Class": "CommandLineTool",
+                "ID": "sort_bam",
+                "Requirements": [
+                    {
+                        "Class": "DockerRequirement",
+                        "DockerPull": "vinbdi/biotools",
+                        "RamMin": 0,
+                        "CpuMin": 0
+                    },
+                    {
+                        "Class": "ResourceRequirement",
+                        "DockerPull": "",
+                        "RamMin": 2000,
+                        "CpuMin": 0
+                    }
+                ],
+                "Inputs": [
+                    {
+                        "Name": "output_add_replace_rdg",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "common_basename",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "SortBam",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    }
+                ],
+                "BaseCommand": [
+                    "picard",
+                    "AddOrReplaceReadGroups"
+                ],
+                "Arguments": [
+                    {
+                        "Position": 0,
+                        "ShellQuote": false,
+                        "ValueFrom": "I=$(inputs.input_bam) O=$(inputs.output_add_replace_rdg) CREATE_INDEX=true RGID=RG_mother RGLB=lib_mother RGPL=illumina RGPU=unit_mother RGSM=$(inputs.common_basename)"
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "output",
+                        "Type": [
+                            "File"
+                        ],
+                        "OutputBinding": {
+                            "Glob": [
+                                "*.grp.sorted.md.bam"
+                            ]
+                        },
+                        "SecondaryFiles": [
+                            "^.bai",
+                            "^.bam.md5"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "Name": "RecalibrateBQSR",
+            "Run": "tasks/RecalibrateBQSR.cwl",
+            "Scatter": "",
+            "Parents": [
+                "SetNmMdAndUqTags"
+            ],
+            "Children": [
+                "ApplyBQSR"
+            ],
+            "In": [
+                {
+                    "Name": "indexed_reference_fasta",
+                    "Source": "indexed_reference_fasta",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "indexed_reference_indels_hg38",
+                    "Source": "indexed_reference_indels_hg38",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "indexed_reference_know_indels_hg38",
+                    "Source": "indexed_reference_know_indels_hg38",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "input_bam",
+                    "Source": "SetNmMdAndUqTags/output",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "output_recalibrate_bqsr",
+                    "Source": "output_basename",
+                    "ValueFrom": "$(self + \".recal_data.table\")"
+                },
+                {
+                    "Name": "indexed_reference_dpsnp_hg38",
+                    "Source": "indexed_reference_dpsnp_hg38",
+                    "ValueFrom": ""
+                }
+            ],
+            "Out": [
+                {
+                    "Name": "output"
+                }
+            ],
+            "CommandLineTool": {
+                "Version": "v1.0",
+                "Class": "CommandLineTool",
+                "ID": "sort_bam",
+                "Requirements": [
+                    {
+                        "Class": "DockerRequirement",
+                        "DockerPull": "vinbdi/biotools",
+                        "RamMin": 0,
+                        "CpuMin": 0
+                    },
+                    {
+                        "Class": "ResourceRequirement",
+                        "DockerPull": "",
+                        "RamMin": 2000,
+                        "CpuMin": 0
+                    }
+                ],
+                "Inputs": [
+                    {
+                        "Name": "indexed_reference_fasta",
+                        "WorkflowName": "indexed_reference_fasta",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": [
+                            ".64.amb",
+                            ".64.ann",
+                            ".64.bwt",
+                            ".64.pac",
+                            ".64.sa",
+                            ".64.alt",
+                            ".dict",
+                            ".fai"
+                        ],
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "indexed_reference_indels_hg38",
+                        "WorkflowName": "indexed_reference_indels_hg38",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "indexed_reference_know_indels_hg38",
+                        "WorkflowName": "indexed_reference_know_indels_hg38",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "indexed_reference_dpsnp_hg38",
+                        "WorkflowName": "indexed_reference_dpsnp_hg38",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "output_recalibrate_bqsr",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "SetNmMdAndUqTags",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    }
+                ],
+                "BaseCommand": [
+                    "gatk",
+                    "BaseRecalibrator"
+                ],
+                "Arguments": [
+                    {
+                        "Position": 0,
+                        "ShellQuote": false,
+                        "ValueFrom": "-R $(inputs.indexed_reference_fasta) --use-original-qualities -I $(inputs.input_bam) --known-sites $(inputs.indexed_reference_indels_hg38) --known-sites $(inputs.indexed_reference_know_indels_hg38) --known-sites $(inputs.indexed_reference_dpsnp_hg38) -O $(input.output_recalibrate_bqsr)"
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "output",
+                        "Type": [
+                            "File"
+                        ],
+                        "OutputBinding": {
+                            "Glob": [
+                                "*.recal_data.table"
+                            ]
+                        },
+                        "SecondaryFiles": null
+                    }
+                ]
+            }
+        },
+        {
+            "Name": "VariantCalling",
+            "Run": "tasks/VariantCalling.cwl",
+            "Scatter": "",
+            "Parents": [
+                "ApplyBQSR"
+            ],
+            "Children": null,
+            "In": [
+                {
+                    "Name": "indexed_reference_fasta",
+                    "Source": "indexed_reference_fasta",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "input_bam",
+                    "Source": "ApplyBQSR/output",
+                    "ValueFrom": ""
+                },
+                {
+                    "Name": "output_variant_calling",
+                    "Source": "output_basename",
+                    "ValueFrom": "$(self + \".vcf.gz\")"
+                }
+            ],
+            "Out": [
+                {
+                    "Name": "output"
+                }
+            ],
+            "CommandLineTool": {
+                "Version": "v1.0",
+                "Class": "CommandLineTool",
+                "ID": "sort_bam",
+                "Requirements": [
+                    {
+                        "Class": "DockerRequirement",
+                        "DockerPull": "vinbdi/biotools",
+                        "RamMin": 0,
+                        "CpuMin": 0
+                    },
+                    {
+                        "Class": "ResourceRequirement",
+                        "DockerPull": "",
+                        "RamMin": 2000,
+                        "CpuMin": 0
+                    }
+                ],
+                "Inputs": [
+                    {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "ApplyBQSR",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "indexed_reference_fasta",
+                        "WorkflowName": "indexed_reference_fasta",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": [
+                            ".64.amb",
+                            ".64.ann",
+                            ".64.bwt",
+                            ".64.pac",
+                            ".64.sa",
+                            ".64.alt",
+                            ".dict",
+                            ".fai"
+                        ],
+                        "InputBinding": null
+                    },
+                    {
+                        "Name": "output_variant_calling",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "InputBinding": null
+                    }
+                ],
+                "BaseCommand": [
+                    "gatk",
+                    "HaplotypeCaller"
+                ],
+                "Arguments": [
+                    {
+                        "Position": 0,
+                        "ShellQuote": false,
+                        "ValueFrom": "-R $(inputs.indexed_reference_fasta) -I $(inputs.input_bam) -O $(input.output_variant_calling)"
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "output",
+                        "Type": [
+                            "File"
+                        ],
+                        "OutputBinding": {
+                            "Glob": [
+                                "*.vcf.gz"
+                            ]
+                        },
+                        "SecondaryFiles": [
+                            "^.vcf.gz.tbi"
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

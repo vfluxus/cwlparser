@@ -1,57 +1,58 @@
 package workflowdag
 
+import (
+	"errors"
+
+	"github.com/vfluxus/cwlparser/workflowcwl"
+)
+
 type WorkflowDAG struct {
 	Name  string  `json:"name"`
 	Steps []*Step `json:"steps"`
 }
 
-type Step struct {
-	ID           int
-	Name         string
-	WorkflowName string
-	DockerImage  string
-	Resource     struct {
-		CPU int
-		Ram int
+func ConvertFromCWL(wfCWL *workflowcwl.WorkflowCWL) (wfDAG *WorkflowDAG, err error) {
+	wfDAG = &WorkflowDAG{
+		Name: wfCWL.ID,
 	}
-	BaseCommand  []string
-	StepInput    []*stepInput
-	StepOutput   []*stepOutput
-	Arguments    []*Argument
-	ParentName   []string
-	ParentID     []int
-	ChildrenName []string
-	ChildrenID   []int
-}
 
-type stepInput struct {
-	Name           string
-	WorkflowName   string
-	From           string
-	Type           []string
-	SecondaryFiles []string
-	Value          []string
-	NullFlag       bool
-	Regex          bool
-	Binding        *stepInputBinding
-}
+	var (
+		nameIDMap = make(map[string]int) // use for add id to parent and children name
+	)
+	id := 0
+	for stepCWLIndex := range wfCWL.Steps {
+		newStepDAG, err := ConvertStepCWLtoStepDAG(wfCWL, wfCWL.Steps[stepCWLIndex], id)
+		if err != nil {
+			return nil, err
+		}
 
-type stepInputBinding struct {
-	Postition int
-	Prefix    string
-}
+		if _, ok := nameIDMap[newStepDAG.WorkflowName]; ok {
+			return nil, errors.New("Duplicate step workflowname")
+		}
+		nameIDMap[newStepDAG.WorkflowName] = id
 
-type stepOutput struct {
-	Name           string
-	WorkflowName   string
-	Type           []string
-	Patern         []string
-	Regex          []string
-	SecondaryFiles []string
-}
+		id++
+		wfDAG.Steps = append(wfDAG.Steps, newStepDAG)
+	}
 
-type Argument struct {
-	Postition int
-	Input     *stepInput
-	Prefix    string
+	// add id to parent and children name
+	for stepDAGIndex := range wfDAG.Steps {
+		for parentIndex := range wfDAG.Steps[stepDAGIndex].ParentName {
+			if parentID, ok := nameIDMap[wfDAG.Steps[stepDAGIndex].ParentName[parentIndex]]; ok {
+				wfDAG.Steps[stepDAGIndex].ParentID = append(wfDAG.Steps[stepDAGIndex].ParentID, parentID)
+				continue
+			}
+			return nil, errors.New("Parent not found")
+		}
+
+		for childrenIndex := range wfDAG.Steps[stepDAGIndex].ChildrenName {
+			if childrenID, ok := nameIDMap[wfDAG.Steps[stepDAGIndex].ChildrenName[childrenIndex]]; ok {
+				wfDAG.Steps[stepDAGIndex].ChildrenID = append(wfDAG.Steps[stepDAGIndex].ChildrenID, childrenID)
+				continue
+			}
+			return nil, errors.New("Children not found")
+		}
+	}
+
+	return wfDAG, nil
 }

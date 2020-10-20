@@ -1,0 +1,1343 @@
+{
+    "name": "mash_workflow",
+    "steps": [
+        {
+            "ID": 0,
+            "Name": "",
+            "WorkflowName": "AlignmentReads",
+            "DockerImage": "vinbdi/biotools",
+            "Resource": {
+                "CPU": 0,
+                "Ram": 4096
+            },
+            "BaseCommand": [
+                "bwa",
+                "mem"
+            ],
+            "StepInput": [
+                {
+                    "Name": "indexed_reference_fasta",
+                    "WorkflowName": "indexed_reference_fasta",
+                    "From": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "output_aligned_reads",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "input_fastqs",
+                    "WorkflowName": "input_fastqs",
+                    "From": "",
+                    "Type": [
+                        "File[]"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                }
+            ],
+            "StepOutput": [
+                {
+                    "Name": "output",
+                    "WorkflowName": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "Patern": null,
+                    "Regex": [
+                        "*.sam"
+                    ],
+                    "SecondaryFiles": null
+                }
+            ],
+            "Arguments": [
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "indexed_reference_fasta",
+                        "WorkflowName": "indexed_reference_fasta",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": [
+                            ".64.amb",
+                            ".64.ann",
+                            ".64.bwt",
+                            ".64.pac",
+                            ".64.sa",
+                            ".64.alt",
+                            ".dict",
+                            ".fai"
+                        ],
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": "-M -Y -t 16 -K 100000000 -p "
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "input_fastqs",
+                        "WorkflowName": "input_fastqs",
+                        "From": "",
+                        "Type": [
+                            "File[]"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " "
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "output_aligned_reads",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " -o "
+                }
+            ],
+            "ParentName": null,
+            "ParentID": null,
+            "ChildrenName": [
+                "FixMate"
+            ],
+            "ChildrenID": [
+                1
+            ]
+        },
+        {
+            "ID": 1,
+            "Name": "",
+            "WorkflowName": "FixMate",
+            "DockerImage": "vinbdi/biotools",
+            "Resource": {
+                "CPU": 0,
+                "Ram": 2000
+            },
+            "BaseCommand": [
+                "samtools",
+                "fixmate"
+            ],
+            "StepInput": [
+                {
+                    "Name": "input_sam",
+                    "WorkflowName": "output",
+                    "From": "AlignmentReads",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "output_fixmate_bam",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "string"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                }
+            ],
+            "StepOutput": [
+                {
+                    "Name": "output",
+                    "WorkflowName": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "Patern": null,
+                    "Regex": [
+                        "*.bam$"
+                    ],
+                    "SecondaryFiles": [
+                        "^.bai",
+                        "^.bam.md5"
+                    ]
+                }
+            ],
+            "Arguments": [
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "input_sam",
+                        "WorkflowName": "output",
+                        "From": "AlignmentReads",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": ""
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "output_fixmate_bam",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " -O bam "
+                }
+            ],
+            "ParentName": [
+                "AlignmentReads"
+            ],
+            "ParentID": [
+                0
+            ],
+            "ChildrenName": [
+                "MarkDuplicates"
+            ],
+            "ChildrenID": [
+                4
+            ]
+        },
+        {
+            "ID": 2,
+            "Name": "",
+            "WorkflowName": "SetNmMdAndUqTags",
+            "DockerImage": "vinbdi/biotools",
+            "Resource": {
+                "CPU": 0,
+                "Ram": 2000
+            },
+            "BaseCommand": [
+                "picard",
+                "SetNmMdAndUqTags"
+            ],
+            "StepInput": [
+                {
+                    "Name": "input_bam",
+                    "WorkflowName": "output",
+                    "From": "AddReplaceReadGroups",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "indexed_reference_fasta",
+                    "WorkflowName": "indexed_reference_fasta",
+                    "From": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "output_add_replace_rdg",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "string"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                }
+            ],
+            "StepOutput": [
+                {
+                    "Name": "output",
+                    "WorkflowName": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "Patern": null,
+                    "Regex": [
+                        "*.tagged.sorted.md.bam"
+                    ],
+                    "SecondaryFiles": [
+                        "^.bai",
+                        "^.bam.md5"
+                    ]
+                }
+            ],
+            "Arguments": [
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "AddReplaceReadGroups",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": "I="
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "output_add_replace_rdg",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " O="
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "indexed_reference_fasta",
+                        "WorkflowName": "indexed_reference_fasta",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": [
+                            ".64.amb",
+                            ".64.ann",
+                            ".64.bwt",
+                            ".64.pac",
+                            ".64.sa",
+                            ".64.alt",
+                            ".dict",
+                            ".fai"
+                        ],
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " CREATE_INDEX=true R="
+                }
+            ],
+            "ParentName": [
+                "AddReplaceReadGroups"
+            ],
+            "ParentID": [
+                6
+            ],
+            "ChildrenName": [
+                "ApplyBQSR",
+                "RecalibrateBQSR"
+            ],
+            "ChildrenID": [
+                3,
+                7
+            ]
+        },
+        {
+            "ID": 3,
+            "Name": "",
+            "WorkflowName": "ApplyBQSR",
+            "DockerImage": "vinbdi/biotools",
+            "Resource": {
+                "CPU": 0,
+                "Ram": 2000
+            },
+            "BaseCommand": [
+                "gatk",
+                "ApplyBQSR"
+            ],
+            "StepInput": [
+                {
+                    "Name": "input_bam",
+                    "WorkflowName": "output",
+                    "From": "SetNmMdAndUqTags",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "indexed_reference_fasta",
+                    "WorkflowName": "indexed_reference_fasta",
+                    "From": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "input_recalibrate_bqsr",
+                    "WorkflowName": "output",
+                    "From": "RecalibrateBQSR",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "output_apply_bqsr",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "string"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                }
+            ],
+            "StepOutput": [
+                {
+                    "Name": "output",
+                    "WorkflowName": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "Patern": null,
+                    "Regex": [
+                        "*.bam$"
+                    ],
+                    "SecondaryFiles": [
+                        "^.bai",
+                        "^.bam.md5"
+                    ]
+                }
+            ],
+            "Arguments": [
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "indexed_reference_fasta",
+                        "WorkflowName": "indexed_reference_fasta",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": [
+                            ".64.amb",
+                            ".64.ann",
+                            ".64.bwt",
+                            ".64.pac",
+                            ".64.sa",
+                            ".64.alt",
+                            ".dict",
+                            ".fai"
+                        ],
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": "-R "
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "SetNmMdAndUqTags",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " -I "
+                },
+                {
+                    "Postition": 0,
+                    "Input": null,
+                    "Prefix": " -bqsr "
+                },
+                {
+                    "Postition": 0,
+                    "Input": null,
+                    "Prefix": " "
+                },
+                {
+                    "Postition": 0,
+                    "Input": null,
+                    "Prefix": ""
+                }
+            ],
+            "ParentName": [
+                "SetNmMdAndUqTags",
+                "RecalibrateBQSR"
+            ],
+            "ParentID": [
+                2,
+                7
+            ],
+            "ChildrenName": [
+                "VariantCalling"
+            ],
+            "ChildrenID": [
+                8
+            ]
+        },
+        {
+            "ID": 4,
+            "Name": "",
+            "WorkflowName": "MarkDuplicates",
+            "DockerImage": "vinbdi/biotools",
+            "Resource": {
+                "CPU": 0,
+                "Ram": 2000
+            },
+            "BaseCommand": [
+                "picard MarkDuplicates"
+            ],
+            "StepInput": [
+                {
+                    "Name": "input_bam",
+                    "WorkflowName": "output",
+                    "From": "FixMate",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "output_md_bam",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "string"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "output_report_txt",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "string"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                }
+            ],
+            "StepOutput": [
+                {
+                    "Name": "output",
+                    "WorkflowName": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "Patern": null,
+                    "Regex": [
+                        "*.md.bam"
+                    ],
+                    "SecondaryFiles": [
+                        "^.bai",
+                        "^.bam.md5"
+                    ]
+                }
+            ],
+            "Arguments": [
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "FixMate",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": "I="
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "output_md_bam",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " O="
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "output_report_txt",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " M="
+                },
+                {
+                    "Postition": 0,
+                    "Input": null,
+                    "Prefix": ""
+                }
+            ],
+            "ParentName": [
+                "FixMate"
+            ],
+            "ParentID": [
+                1
+            ],
+            "ChildrenName": [
+                "SortBam"
+            ],
+            "ChildrenID": [
+                5
+            ]
+        },
+        {
+            "ID": 5,
+            "Name": "",
+            "WorkflowName": "SortBam",
+            "DockerImage": "vinbdi/biotools",
+            "Resource": {
+                "CPU": 0,
+                "Ram": 2000
+            },
+            "BaseCommand": [
+                "picard",
+                "SortSam"
+            ],
+            "StepInput": [
+                {
+                    "Name": "input_bam",
+                    "WorkflowName": "output",
+                    "From": "MarkDuplicates",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "output_sorted_bam",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "string"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                }
+            ],
+            "StepOutput": [
+                {
+                    "Name": "output",
+                    "WorkflowName": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "Patern": null,
+                    "Regex": [
+                        "*.bam$"
+                    ],
+                    "SecondaryFiles": [
+                        "^.bai",
+                        "^.bam.md5"
+                    ]
+                }
+            ],
+            "Arguments": [
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "MarkDuplicates",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": "I="
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "output_sorted_bam",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " O="
+                },
+                {
+                    "Postition": 0,
+                    "Input": null,
+                    "Prefix": ""
+                }
+            ],
+            "ParentName": [
+                "MarkDuplicates"
+            ],
+            "ParentID": [
+                4
+            ],
+            "ChildrenName": [
+                "AddReplaceReadGroups"
+            ],
+            "ChildrenID": [
+                6
+            ]
+        },
+        {
+            "ID": 6,
+            "Name": "",
+            "WorkflowName": "AddReplaceReadGroups",
+            "DockerImage": "vinbdi/biotools",
+            "Resource": {
+                "CPU": 0,
+                "Ram": 2000
+            },
+            "BaseCommand": [
+                "picard",
+                "AddOrReplaceReadGroups"
+            ],
+            "StepInput": [
+                {
+                    "Name": "output_add_replace_rdg",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "string"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "common_basename",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "string"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "input_bam",
+                    "WorkflowName": "output",
+                    "From": "SortBam",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                }
+            ],
+            "StepOutput": [
+                {
+                    "Name": "output",
+                    "WorkflowName": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "Patern": null,
+                    "Regex": [
+                        "*.grp.sorted.md.bam"
+                    ],
+                    "SecondaryFiles": [
+                        "^.bai",
+                        "^.bam.md5"
+                    ]
+                }
+            ],
+            "Arguments": [
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "SortBam",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": "I="
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "output_add_replace_rdg",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " O="
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "common_basename",
+                        "WorkflowName": "output_basename",
+                        "From": "",
+                        "Type": [
+                            "string"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " CREATE_INDEX=true RGID=RG_mother RGLB=lib_mother RGPL=illumina RGPU=unit_mother RGSM="
+                }
+            ],
+            "ParentName": [
+                "SortBam"
+            ],
+            "ParentID": [
+                5
+            ],
+            "ChildrenName": [
+                "SetNmMdAndUqTags"
+            ],
+            "ChildrenID": [
+                2
+            ]
+        },
+        {
+            "ID": 7,
+            "Name": "",
+            "WorkflowName": "RecalibrateBQSR",
+            "DockerImage": "vinbdi/biotools",
+            "Resource": {
+                "CPU": 0,
+                "Ram": 2000
+            },
+            "BaseCommand": [
+                "gatk",
+                "BaseRecalibrator"
+            ],
+            "StepInput": [
+                {
+                    "Name": "indexed_reference_fasta",
+                    "WorkflowName": "indexed_reference_fasta",
+                    "From": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "indexed_reference_indels_hg38",
+                    "WorkflowName": "indexed_reference_indels_hg38",
+                    "From": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "indexed_reference_know_indels_hg38",
+                    "WorkflowName": "indexed_reference_know_indels_hg38",
+                    "From": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "indexed_reference_dpsnp_hg38",
+                    "WorkflowName": "indexed_reference_dpsnp_hg38",
+                    "From": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "output_recalibrate_bqsr",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "string"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "input_bam",
+                    "WorkflowName": "output",
+                    "From": "SetNmMdAndUqTags",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                }
+            ],
+            "StepOutput": [
+                {
+                    "Name": "output",
+                    "WorkflowName": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "Patern": null,
+                    "Regex": [
+                        "*.recal_data.table"
+                    ],
+                    "SecondaryFiles": null
+                }
+            ],
+            "Arguments": [
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "indexed_reference_fasta",
+                        "WorkflowName": "indexed_reference_fasta",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": [
+                            ".64.amb",
+                            ".64.ann",
+                            ".64.bwt",
+                            ".64.pac",
+                            ".64.sa",
+                            ".64.alt",
+                            ".dict",
+                            ".fai"
+                        ],
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": "-R "
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "SetNmMdAndUqTags",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " --use-original-qualities -I "
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "indexed_reference_indels_hg38",
+                        "WorkflowName": "indexed_reference_indels_hg38",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " --known-sites "
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "indexed_reference_know_indels_hg38",
+                        "WorkflowName": "indexed_reference_know_indels_hg38",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " --known-sites "
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "indexed_reference_dpsnp_hg38",
+                        "WorkflowName": "indexed_reference_dpsnp_hg38",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " --known-sites "
+                },
+                {
+                    "Postition": 0,
+                    "Input": null,
+                    "Prefix": " -O "
+                }
+            ],
+            "ParentName": [
+                "SetNmMdAndUqTags"
+            ],
+            "ParentID": [
+                2
+            ],
+            "ChildrenName": [
+                "ApplyBQSR"
+            ],
+            "ChildrenID": [
+                3
+            ]
+        },
+        {
+            "ID": 8,
+            "Name": "",
+            "WorkflowName": "VariantCalling",
+            "DockerImage": "vinbdi/biotools",
+            "Resource": {
+                "CPU": 0,
+                "Ram": 2000
+            },
+            "BaseCommand": [
+                "gatk",
+                "HaplotypeCaller"
+            ],
+            "StepInput": [
+                {
+                    "Name": "input_bam",
+                    "WorkflowName": "output",
+                    "From": "ApplyBQSR",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "indexed_reference_fasta",
+                    "WorkflowName": "indexed_reference_fasta",
+                    "From": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "SecondaryFiles": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                },
+                {
+                    "Name": "output_variant_calling",
+                    "WorkflowName": "output_basename",
+                    "From": "",
+                    "Type": [
+                        "string"
+                    ],
+                    "SecondaryFiles": null,
+                    "Value": null,
+                    "NullFlag": false,
+                    "Regex": false,
+                    "Binding": null
+                }
+            ],
+            "StepOutput": [
+                {
+                    "Name": "output",
+                    "WorkflowName": "",
+                    "Type": [
+                        "File"
+                    ],
+                    "Patern": null,
+                    "Regex": [
+                        "*.vcf.gz"
+                    ],
+                    "SecondaryFiles": [
+                        "^.vcf.gz.tbi"
+                    ]
+                }
+            ],
+            "Arguments": [
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "indexed_reference_fasta",
+                        "WorkflowName": "indexed_reference_fasta",
+                        "From": "",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": [
+                            ".64.amb",
+                            ".64.ann",
+                            ".64.bwt",
+                            ".64.pac",
+                            ".64.sa",
+                            ".64.alt",
+                            ".dict",
+                            ".fai"
+                        ],
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": "-R "
+                },
+                {
+                    "Postition": 0,
+                    "Input": {
+                        "Name": "input_bam",
+                        "WorkflowName": "output",
+                        "From": "ApplyBQSR",
+                        "Type": [
+                            "File"
+                        ],
+                        "SecondaryFiles": null,
+                        "Value": null,
+                        "NullFlag": false,
+                        "Regex": false,
+                        "Binding": null
+                    },
+                    "Prefix": " -I "
+                },
+                {
+                    "Postition": 0,
+                    "Input": null,
+                    "Prefix": " -O "
+                }
+            ],
+            "ParentName": [
+                "ApplyBQSR"
+            ],
+            "ParentID": [
+                3
+            ],
+            "ChildrenName": null,
+            "ChildrenID": null
+        }
+    ]
+}

@@ -11,7 +11,9 @@ import (
 type inputs []*input
 
 type input struct {
-	Name           string        `yaml:""`
+	Name           string `yaml:""`
+	WorkflowName   string
+	From           string
 	Type           []string      `yaml:""`
 	SecondaryFiles []string      `yaml:""`
 	InputBinding   *inputBinding `yaml:"inputBinding"`

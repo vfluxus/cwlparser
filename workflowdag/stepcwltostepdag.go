@@ -10,7 +10,7 @@ import (
 	"github.com/vfluxus/cwlparser/workflowcwl"
 )
 
-func ConvertStepCWLtoStepDAG(stepCWL *workflowcwl.Step, id int) (stepDAG *Step, err error) {
+func ConvertStepCWLtoStepDAG(wfCWL *workflowcwl.WorkflowCWL, stepCWL *workflowcwl.Step, id int) (stepDAG *Step, err error) {
 	// check nil fields
 	if stepCWL.CommandLineTool == nil {
 		return nil, errors.New("CommandLineTool not exist")
@@ -23,6 +23,7 @@ func ConvertStepCWLtoStepDAG(stepCWL *workflowcwl.Step, id int) (stepDAG *Step, 
 	// easy convertable fields
 	stepDAG = &Step{
 		ID:           id,
+		Name:         stepCWL.Run,
 		WorkflowName: stepCWL.Name,
 		ParentName:   stepCWL.Parents,
 		ChildrenName: stepCWL.Children,
@@ -75,13 +76,18 @@ func convertStepInput(stepCWL *workflowcwl.Step) (newStepInputs []*stepInput, er
 	for inputIndex := range stepCWL.CommandLineTool.Inputs {
 		newStepInput := &stepInput{
 			Name:           stepCWL.CommandLineTool.Inputs[inputIndex].Name,
+			WorkflowName:   stepCWL.CommandLineTool.Inputs[inputIndex].WorkflowName,
+			From:           stepCWL.CommandLineTool.Inputs[inputIndex].From,
 			Type:           stepCWL.CommandLineTool.Inputs[inputIndex].Type,
 			SecondaryFiles: stepCWL.CommandLineTool.Inputs[inputIndex].SecondaryFiles,
 		}
 		// add binding
 		if stepCWL.CommandLineTool.Inputs[inputIndex].InputBinding != nil {
-			newStepInput.Binding.Postition = stepCWL.CommandLineTool.Inputs[inputIndex].InputBinding.Position
-			newStepInput.Binding.Prefix = stepCWL.CommandLineTool.Inputs[inputIndex].InputBinding.Prefix
+			newBinding := &stepInputBinding{
+				Postition: stepCWL.CommandLineTool.Inputs[inputIndex].InputBinding.Position,
+				Prefix:    stepCWL.CommandLineTool.Inputs[inputIndex].InputBinding.Prefix,
+			}
+			newStepInput.Binding = newBinding
 		}
 
 		newStepInputs = append(newStepInputs, newStepInput)
@@ -137,7 +143,7 @@ func addArugments(stepCWL *workflowcwl.Step, stepDAG *Step) (args []*Argument, e
 				return nil, err
 			}
 			args = append(args, arg)
-			for len(newValueFrom) != 0 {
+			for newValueFrom != "" {
 				arg := &Argument{
 					Postition: argsMap[position][postitionIndex].Position,
 				}
@@ -145,6 +151,7 @@ func addArugments(stepCWL *workflowcwl.Step, stepDAG *Step) (args []*Argument, e
 				if err != nil {
 					return nil, err
 				}
+				args = append(args, arg)
 			}
 		}
 	}
@@ -153,6 +160,11 @@ func addArugments(stepCWL *workflowcwl.Step, stepDAG *Step) (args []*Argument, e
 
 // separateArgValueFrom
 func separateArgValueFrom(stepDAG *Step, valueFrom string) (stepInput *stepInput, prefix string, valueFromLeft string, err error) {
+	// assert empty valueFrom
+	if valueFrom == "" {
+		return nil, "", "", nil
+	}
+
 	var (
 		prefixBuilder = new(strings.Builder)
 	)
@@ -168,7 +180,7 @@ func separateArgValueFrom(stepDAG *Step, valueFrom string) (stepInput *stepInput
 
 		if inputsIndex := strings.Index(valueFrom[valueFromIndex:], "$(inputs."); inputsIndex >= 0 {
 			inputName := new(strings.Builder) // $(inputs.<inputName>)
-			for i := inputsIndex + len("$(inputs"); valueFrom[i] != ')' && i < len(valueFrom); i++ {
+			for i := inputsIndex + len("(inputs.") + 1; string(valueFrom[valueFromIndex:][i]) != ")" && i < len(valueFrom[valueFromIndex:]); i++ {
 				inputName.WriteByte(valueFrom[valueFromIndex:][i])
 			}
 
@@ -178,6 +190,8 @@ func separateArgValueFrom(stepDAG *Step, valueFrom string) (stepInput *stepInput
 					break
 				}
 			}
+
+			// valueFromLeft after remove "<prefix> $(inputs.<inputName>)"
 			valueFromLeft = valueFrom[valueFromIndex+len("$(inputs.")+inputName.Len()+1:] // remove "--prefix $(inputs.<inputName>)" from valueFrom
 
 			return stepInput, prefix, valueFromLeft, nil

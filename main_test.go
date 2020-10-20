@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/vfluxus/cwlparser/workflowdag"
+
 	"gopkg.in/yaml.v2"
 
 	"github.com/vfluxus/cwlparser/commandlinetool"
@@ -76,4 +78,35 @@ func TestWorkflowCWLUnmarshal(t *testing.T) {
 		t.Fatal(err)
 	}
 	libs.PrintJsonFormat(newWorkflowCWL)
+}
+
+func TestConvertCWLToDAG(t *testing.T) {
+	newWorkflowCWL := new(workflowcwl.WorkflowCWL)
+	if err := newWorkflowCWL.Unmarshal("/home/tpp/go/src/github.com/vfluxus/demo-cwl/wgs", "wgs.cwl"); err != nil {
+		t.Fatal(err)
+	}
+	newWorkflowDAG, err := workflowdag.ConvertFromCWL(newWorkflowCWL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	libs.PrintJsonFormat(newWorkflowDAG)
+}
+
+func TestMainCwlAndDag(t *testing.T) {
+	var (
+		folder  string = "/home/tpp/go/src/github.com/vfluxus/transformer/test/basic/"
+		cwlfile string = "1st-workflow.cwl"
+	)
+
+	newWorkflowCWL, err := ParseCWL(folder, cwlfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	libs.PrintJsonFormat(newWorkflowCWL)
+
+	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	libs.PrintJsonFormat(newWorkflowDAG)
 }

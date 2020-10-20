@@ -124,16 +124,17 @@ type CommandLineTool struct {
 type requirement struct {
 	Class      string `yaml:"class"`
 	DockerPull string `yaml:"dockerPull"`
-	RamMin     string `yaml:"ramMin"`
-	CpuMin     string `yaml:"cpuMin"`
+	RamMin     int    `yaml:"ramMin"`
+	CpuMin     int    `yaml:"cpuMin"`
 }
 
 // inputs
 type inputs []*input
 
 type input struct {
-	Name           string        `yaml:""`
-	From           string        `yaml:""`
+	Name           string `yaml:""`
+	WorkflowName   string
+	From           string
 	Type           []string      `yaml:""`
 	SecondaryFiles []string      `yaml:""`
 	InputBinding   *inputBinding `yaml:"inputBinding"`
@@ -209,14 +210,16 @@ type output struct {
 // steps
 type steps []*step
 
-type step struct {
+type Step struct {
 	Name            string
 	Run             string
+	Scatter         string `yaml:"scatter"`
+	Parents         []string
+	Children        []string
 	In              stepIns  `yaml:"in"`
 	Out             stepOuts `yaml:"out"`
 	CommandLineTool *commandlinetool.CommandLineTool
 }
-
 // step in
 type stepIns []*stepIn
 

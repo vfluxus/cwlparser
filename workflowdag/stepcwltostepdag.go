@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/vfluxus/cwlparser/commandlinetool"
@@ -136,9 +137,10 @@ func addArugments(stepCWL *workflowcwl.Step, stepDAG *Step) (args []*Argument, e
 			}
 
 			var (
-				newValueFrom string
+				newValueFrom    string
+				trimedValueFrom = strings.TrimSpace(argsMap[position][postitionIndex].ValueFrom)
 			)
-			arg.Input, arg.Prefix, newValueFrom, err = separateArgValueFrom(stepDAG, argsMap[position][postitionIndex].ValueFrom)
+			newValueFrom, err = separateArgValueFrom(stepDAG, arg, trimedValueFrom)
 			if err != nil {
 				return nil, err
 			}
@@ -147,7 +149,7 @@ func addArugments(stepCWL *workflowcwl.Step, stepDAG *Step) (args []*Argument, e
 				arg := &Argument{
 					Postition: argsMap[position][postitionIndex].Position,
 				}
-				arg.Input, arg.Prefix, newValueFrom, err = separateArgValueFrom(stepDAG, newValueFrom)
+				newValueFrom, err = separateArgValueFrom(stepDAG, arg, newValueFrom)
 				if err != nil {
 					return nil, err
 				}
@@ -159,10 +161,10 @@ func addArugments(stepCWL *workflowcwl.Step, stepDAG *Step) (args []*Argument, e
 }
 
 // separateArgValueFrom
-func separateArgValueFrom(stepDAG *Step, valueFrom string) (stepInput *stepInput, prefix string, valueFromLeft string, err error) {
+func separateArgValueFrom(stepDAG *Step, arg *Argument, valueFrom string) (valueFromLeft string, err error) {
 	// assert empty valueFrom
 	if valueFrom == "" {
-		return nil, "", "", nil
+		return "", nil
 	}
 
 	var (
@@ -172,11 +174,11 @@ func separateArgValueFrom(stepDAG *Step, valueFrom string) (stepInput *stepInput
 		// write whatever before $
 		if valueFrom[valueFromIndex] != '$' {
 			if err := prefixBuilder.WriteByte(valueFrom[valueFromIndex]); err != nil {
-				return nil, "", "", fmt.Errorf("Separating argument value from. Error: %v", err)
+				return "", fmt.Errorf("Separating argument value from. Error: %v", err)
 			}
 			continue
 		}
-		prefix = prefixBuilder.String()
+		arg.Prefix = prefixBuilder.String()
 
 		if inputsIndex := strings.Index(valueFrom[valueFromIndex:], "$(inputs."); inputsIndex >= 0 {
 			inputName := new(strings.Builder) // $(inputs.<inputName>)
@@ -186,16 +188,32 @@ func separateArgValueFrom(stepDAG *Step, valueFrom string) (stepInput *stepInput
 
 			for stepInputIndex := range stepDAG.StepInput {
 				if inputName.String() == stepDAG.StepInput[stepInputIndex].WorkflowName || inputName.String() == stepDAG.StepInput[stepInputIndex].Name {
-					stepInput = stepDAG.StepInput[stepInputIndex]
+					arg.Input = stepDAG.StepInput[stepInputIndex]
 					break
 				}
 			}
 
+			// Check index
+			if index := valueFromIndex + len("$(inputs.") + inputName.Len() + 1 + 1; index < len(valueFrom) && string(valueFrom[index-1]) == "[" {
+				indexBuilder := new(strings.Builder)
+				for i := index; i < len(valueFrom) && string(valueFrom[i]) != "]"; i++ {
+					indexBuilder.WriteByte(valueFrom[i])
+				}
+				fmt.Println(indexBuilder.String())
+				argIndex, err := strconv.Atoi(indexBuilder.String())
+				if err == nil {
+					arg.Index = argIndex
+					if index+indexBuilder.Len()+1 < len(valueFrom) {
+						valueFromLeft = valueFrom[index+indexBuilder.Len()+1:]
+						return valueFromLeft, nil
+					}
+				}
+			}
 			// valueFromLeft after remove "<prefix> $(inputs.<inputName>)"
 			valueFromLeft = valueFrom[valueFromIndex+len("$(inputs.")+inputName.Len()+1:] // remove "--prefix $(inputs.<inputName>)" from valueFrom
 
-			return stepInput, prefix, valueFromLeft, nil
+			return valueFromLeft, nil
 		}
 	}
-	return stepInput, prefix, valueFromLeft, nil
+	return valueFromLeft, nil
 }

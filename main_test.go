@@ -102,7 +102,7 @@ func TestMainCwlAndDag(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	libs.PrintJsonFormat(newWorkflowCWL)
+	// libs.PrintJsonFormat(newWorkflowCWL)
 
 	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL)
 	if err != nil {

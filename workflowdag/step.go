@@ -47,6 +47,7 @@ type stepOutput struct {
 
 type Argument struct {
 	Postition int
+	Index     int
 	Input     *stepInput
 	Prefix    string
 }

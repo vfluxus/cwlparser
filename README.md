@@ -8,6 +8,9 @@
   - [3. Golang struct](#3-golang-struct)
     - [3.1. CommandLineTool](#31-commandlinetool)
     - [3.2. Workflow](#32-workflow)
+  - [4. Convert to dag:](#4-convert-to-dag)
+    - [4.1. Workflow DAG Struct](#41-workflow-dag-struct)
+    - [4.2. How to convert](#42-how-to-convert)
 
 ## 1. DESCRIPTION
 - Parse CWL to Golang struct
@@ -236,3 +239,93 @@ type stepOut struct {
 	Name string
 }
 ```
+
+## 4. Convert to dag:
+
+### 4.1. Workflow DAG Struct
+
+```go
+// WorkflowDAG 
+type WorkflowDAG struct {
+	Name  string  `json:"name"`
+	Steps []*Step `json:"steps"`
+}
+
+// Step
+package workflowdag
+
+type Step struct {
+	ID           int
+	Name         string
+	WorkflowName string
+	DockerImage  string
+	Resource     struct {
+		CPU int
+		Ram int
+	}
+	BaseCommand  []string
+	StepInput    []*stepInput
+	StepOutput   []*stepOutput
+	Arguments    []*Argument
+	ParentName   []string
+	ParentID     []int
+	ChildrenName []string
+	ChildrenID   []int
+}
+
+type stepInput struct {
+	Name           string
+	WorkflowName   string
+	From           string
+	Type           []string
+	SecondaryFiles []string
+	Value          []string
+	NullFlag       bool
+	Regex          bool
+	Binding        *stepInputBinding
+}
+
+type stepInputBinding struct {
+	Postition int
+	Prefix    string
+}
+
+type stepOutput struct {
+	Name           string
+	WorkflowName   string
+	Type           []string
+	Patern         []string
+	Regex          []string
+	SecondaryFiles []string
+}
+
+type Argument struct {
+    Postition int
+    Index     int
+	Input     *stepInput
+	Prefix    string
+}
+```
+
+### 4.2. How to convert
+- Convert step CWL to step DAG
+    -  Easy converted:
+        - ID
+        - Name: Run
+        - WorkflowName: stepCWL.Name
+        - Children
+        - Parent
+        - BaseCommand
+    - Convert Requirements:
+        - Docker images
+        - CPU, RAM
+    - Convert Step input:
+        - Name, WorkflowName, From, Type, Secondary Files
+        - Check input binding
+    - Convert Step ouput:
+        - Name, Type, SecondaryFiles, Regex
+    - Add arguments:
+        - Generate from arguments.ValueFrom
+        - Link to stepInputs (if $(inputs.[stepInput]))
+        - Each argument only have 1 step Inputs. 1 Argument.ValueFrom can be separated to multiple arguments
+    - #TODO: Add step inputs to arguments

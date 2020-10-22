@@ -110,3 +110,39 @@ func TestMainCwlAndDag(t *testing.T) {
 	}
 	libs.PrintJsonFormat(newWorkflowDAG)
 }
+
+func TestAddValueToStepInAndArg(t *testing.T) {
+	var (
+		folder    = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wgs/"
+		cwlfile   = "wgs.cwl"
+		inputPath = "wgs.yml"
+		data      = make(map[string]interface{})
+		err       error
+	)
+
+	newWorkflowCWL, err := ParseCWL(folder, cwlfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// libs.PrintJsonFormat(newWorkflowCWL)
+
+	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	inputFile, err := ioutil.ReadFile(folder + inputPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := yaml.Unmarshal(inputFile, data); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := workflowdag.AddValueToStepInAndArg(data, newWorkflowDAG); err != nil {
+		t.Fatal(err)
+	}
+
+	libs.PrintJsonFormat(newWorkflowDAG)
+}

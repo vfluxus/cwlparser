@@ -11,7 +11,7 @@ import (
 	"github.com/vfluxus/cwlparser/workflowcwl"
 )
 
-func ConvertStepCWLtoStepDAG(wfCWL *workflowcwl.WorkflowCWL, stepCWL *workflowcwl.Step, id int) (stepDAG *Step, err error) {
+func ConvertStepCWLtoStepDAG(wfCWL *workflowcwl.WorkflowCWL, stepCWL *workflowcwl.Step, id string) (stepDAG *Step, err error) {
 	// check nil fields
 	if stepCWL.CommandLineTool == nil {
 		return nil, errors.New("CommandLineTool not exist")
@@ -91,9 +91,69 @@ func convertStepInput(stepCWL *workflowcwl.Step) (newStepInputs []*stepInput, er
 			newStepInput.Binding = newBinding
 		}
 
+		// add input value from
+		for stepInIndex := range stepCWL.In {
+			if stepCWL.In[stepInIndex].Name == newStepInput.Name {
+				valFrom, err := separateSelfValueFrom(stepCWL.In[stepInIndex].ValueFrom)
+				if err != nil {
+					return nil, err
+				}
+				newStepInput.ValueFrom = valFrom
+				break
+			}
+		}
+
+		// add value from
+
 		newStepInputs = append(newStepInputs, newStepInput)
 	}
 	return newStepInputs, nil
+}
+
+// separateSelfValueFrom separate <prefix> + self + <postfix>
+func separateSelfValueFrom(val string) (valFrom *valueFrom, err error) {
+	if val == "" {
+		return nil, nil
+	}
+
+	valFrom = &valueFrom{
+		Raw: val,
+	}
+
+	var (
+		switchFlag       bool // false prefix, true postfix
+		valueFromBuilder = new(strings.Builder)
+		prefixBuilder    = new(strings.Builder)
+		postfixBuilder   = new(strings.Builder)
+	)
+
+	// remove all white spaces, (), $, \, ""
+	for valIndex := range val {
+		if val[valIndex] == ' ' || val[valIndex] == '(' || val[valIndex] == ')' || val[valIndex] == '$' || val[valIndex] == '\\' || string(val[valIndex]) == "\"" {
+			continue
+		}
+		valueFromBuilder.WriteByte(val[valIndex])
+	}
+	val = valueFromBuilder.String()
+
+	// separete by +
+	separatedByPlus := strings.Split(val, "+")
+
+	for separateIndex := range separatedByPlus {
+		if strings.Contains(separatedByPlus[separateIndex], "self") {
+			switchFlag = true
+			continue // skip self
+		}
+		if !switchFlag {
+			prefixBuilder.WriteString(separatedByPlus[separateIndex])
+			continue
+		}
+		postfixBuilder.WriteString(separatedByPlus[separateIndex])
+	}
+
+	valFrom.Prefix = prefixBuilder.String()
+	valFrom.Postfix = postfixBuilder.String()
+	return valFrom, nil
 }
 
 // convertStepOutput ...
@@ -132,26 +192,19 @@ func addArugments(stepCWL *workflowcwl.Step, stepDAG *Step) (args []*Argument, e
 
 	for position := range argsPostition {
 		for postitionIndex := range argsMap[position] {
-			arg := &Argument{
-				Postition: argsMap[position][postitionIndex].Position,
-			}
-
 			var (
-				newValueFrom    string
 				trimedValueFrom = strings.TrimSpace(argsMap[position][postitionIndex].ValueFrom)
 			)
-			newValueFrom, err = separateArgValueFrom(stepDAG, arg, trimedValueFrom)
-			if err != nil {
-				return nil, err
-			}
-			args = append(args, arg)
-			for newValueFrom != "" {
+			for {
 				arg := &Argument{
 					Postition: argsMap[position][postitionIndex].Position,
 				}
-				newValueFrom, err = separateArgValueFrom(stepDAG, arg, newValueFrom)
+				trimedValueFrom, err = separateArgValueFrom(stepDAG, arg, trimedValueFrom)
 				if err != nil {
 					return nil, err
+				}
+				if len(trimedValueFrom) == 0 {
+					break
 				}
 				args = append(args, arg)
 			}

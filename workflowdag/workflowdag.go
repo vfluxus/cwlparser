@@ -2,6 +2,7 @@ package workflowdag
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/vfluxus/cwlparser/workflowcwl"
 )
@@ -17,10 +18,11 @@ func ConvertFromCWL(wfCWL *workflowcwl.WorkflowCWL) (wfDAG *WorkflowDAG, err err
 	}
 
 	var (
-		nameIDMap = make(map[string]int) // use for add id to parent and children name
+		nameIDMap = make(map[string]string) // use for add id to parent and children name
 	)
-	id := 0
+	idCounter := 0
 	for stepCWLIndex := range wfCWL.Steps {
+		id := wfDAG.Name + "-" + strconv.Itoa(idCounter)
 		newStepDAG, err := ConvertStepCWLtoStepDAG(wfCWL, wfCWL.Steps[stepCWLIndex], id)
 		if err != nil {
 			return nil, err
@@ -31,7 +33,7 @@ func ConvertFromCWL(wfCWL *workflowcwl.WorkflowCWL) (wfDAG *WorkflowDAG, err err
 		}
 		nameIDMap[newStepDAG.WorkflowName] = id
 
-		id++
+		idCounter++
 		wfDAG.Steps = append(wfDAG.Steps, newStepDAG)
 	}
 

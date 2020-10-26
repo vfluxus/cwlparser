@@ -196,15 +196,15 @@ func addArugments(stepCWL *workflowcwl.Step, stepDAG *Step) (args []*Argument, e
 				trimedValueFrom = strings.TrimSpace(argsMap[position][postitionIndex].ValueFrom)
 			)
 			for {
+				if len(trimedValueFrom) == 0 || trimedValueFrom == " " {
+					break
+				}
 				arg := &Argument{
 					Postition: argsMap[position][postitionIndex].Position,
 				}
 				trimedValueFrom, err = separateArgValueFrom(stepDAG, arg, trimedValueFrom)
 				if err != nil {
 					return nil, err
-				}
-				if len(trimedValueFrom) == 0 {
-					break
 				}
 				args = append(args, arg)
 			}
@@ -221,9 +221,10 @@ func separateArgValueFrom(stepDAG *Step, arg *Argument, valueFrom string) (value
 	}
 
 	var (
-		prefixBuilder = new(strings.Builder)
+		prefixBuilder  = new(strings.Builder)
+		valueFromIndex int
 	)
-	for valueFromIndex := range valueFrom {
+	for valueFromIndex = range valueFrom {
 		// write whatever before $
 		if valueFrom[valueFromIndex] != '$' {
 			if err := prefixBuilder.WriteByte(valueFrom[valueFromIndex]); err != nil {
@@ -231,42 +232,48 @@ func separateArgValueFrom(stepDAG *Step, arg *Argument, valueFrom string) (value
 			}
 			continue
 		}
-		arg.Prefix = prefixBuilder.String()
-
-		if inputsIndex := strings.Index(valueFrom[valueFromIndex:], "$(inputs."); inputsIndex >= 0 {
-			inputName := new(strings.Builder) // $(inputs.<inputName>)
-			for i := inputsIndex + len("(inputs.") + 1; string(valueFrom[valueFromIndex:][i]) != ")" && i < len(valueFrom[valueFromIndex:]); i++ {
-				inputName.WriteByte(valueFrom[valueFromIndex:][i])
-			}
-
-			for stepInputIndex := range stepDAG.StepInput {
-				if inputName.String() == stepDAG.StepInput[stepInputIndex].WorkflowName || inputName.String() == stepDAG.StepInput[stepInputIndex].Name {
-					arg.Input = stepDAG.StepInput[stepInputIndex]
-					break
-				}
-			}
-
-			// Check index
-			if index := valueFromIndex + len("$(inputs.") + inputName.Len() + 1 + 1; index < len(valueFrom) && string(valueFrom[index-1]) == "[" {
-				indexBuilder := new(strings.Builder)
-				for i := index; i < len(valueFrom) && string(valueFrom[i]) != "]"; i++ {
-					indexBuilder.WriteByte(valueFrom[i])
-				}
-				fmt.Println(indexBuilder.String())
-				argIndex, err := strconv.Atoi(indexBuilder.String())
-				if err == nil {
-					arg.Index = argIndex
-					if index+indexBuilder.Len()+1 < len(valueFrom) {
-						valueFromLeft = valueFrom[index+indexBuilder.Len()+1:]
-						return valueFromLeft, nil
-					}
-				}
-			}
-			// valueFromLeft after remove "<prefix> $(inputs.<inputName>)"
-			valueFromLeft = valueFrom[valueFromIndex+len("$(inputs.")+inputName.Len()+1:] // remove "--prefix $(inputs.<inputName>)" from valueFrom
-
-			return valueFromLeft, nil
-		}
+		break
 	}
+	arg.Prefix = prefixBuilder.String()
+
+	if inputsIndex := strings.Index(valueFrom[valueFromIndex:], "$(inputs."); inputsIndex >= 0 {
+		inputName := new(strings.Builder) // $(inputs.<inputName>)
+		for i := inputsIndex + len("$(inputs."); string(valueFrom[valueFromIndex:][i]) != ")" && i < len(valueFrom[valueFromIndex:]); i++ {
+			inputName.WriteByte(valueFrom[valueFromIndex:][i])
+		}
+
+		for stepInputIndex := range stepDAG.StepInput {
+			if inputName.String() == stepDAG.StepInput[stepInputIndex].WorkflowName || inputName.String() == stepDAG.StepInput[stepInputIndex].Name {
+				arg.Input = stepDAG.StepInput[stepInputIndex]
+				break
+			}
+		}
+
+		if arg.Input == nil {
+			return "", fmt.Errorf("Can not find %s in step input", inputName)
+		}
+
+		// Check index
+		if index := valueFromIndex + len("$(inputs.") + inputName.Len() + 1 + 1; index < len(valueFrom) && string(valueFrom[index-1]) == "[" {
+			indexBuilder := new(strings.Builder)
+			for i := index; i < len(valueFrom) && string(valueFrom[i]) != "]"; i++ {
+				indexBuilder.WriteByte(valueFrom[i])
+			}
+			fmt.Println(indexBuilder.String())
+			argIndex, err := strconv.Atoi(indexBuilder.String())
+			if err == nil {
+				arg.Index = argIndex
+				if index+indexBuilder.Len()+1 < len(valueFrom) {
+					valueFromLeft = valueFrom[index+indexBuilder.Len()+1:]
+					return valueFromLeft, nil
+				}
+			}
+		}
+		// valueFromLeft after remove "<prefix> $(inputs.<inputName>)"
+		valueFromLeft = valueFrom[valueFromIndex+len("$(inputs.")+inputName.Len()+1:] // remove "--prefix $(inputs.<inputName>)" from valueFrom
+
+		return valueFromLeft, nil
+	}
+
 	return valueFromLeft, nil
 }

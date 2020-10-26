@@ -11,6 +11,7 @@
   - [4. Convert to dag:](#4-convert-to-dag)
     - [4.1. Workflow DAG Struct](#41-workflow-dag-struct)
     - [4.2. How to convert](#42-how-to-convert)
+  - [5. Not support these things yet:](#5-not-support-these-things-yet)
 
 ## 1. DESCRIPTION
 - Parse CWL to Golang struct
@@ -329,3 +330,8 @@ type Argument struct {
         - Link to stepInputs (if $(inputs.[stepInput]))
         - Each argument only have 1 step Inputs. 1 Argument.ValueFrom can be separated to multiple arguments
     - #TODO: Add step inputs to arguments
+
+## 5. Not support these things yet:
+- Scatter
+- $(runtime.something)
+- add inputs value in step output

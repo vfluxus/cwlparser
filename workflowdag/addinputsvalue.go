@@ -6,6 +6,8 @@ import (
 	"github.com/vfluxus/cwlparser/libs"
 )
 
+// AddValueToStepInAndArg ...
+// TODO: Index process ???
 func AddValueToStepInAndArg(inputs map[string]interface{}, wfDAG *WorkflowDAG) (err error) {
 	for stepIndex := range wfDAG.Steps {
 		for stepInIndex := range wfDAG.Steps[stepIndex].StepInput {

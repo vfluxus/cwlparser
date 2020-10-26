@@ -1,0 +1,628 @@
+{
+    "workflow_id": 1,
+    "run_id": "1-0-0",
+    "user_id": 0,
+    "status": 0,
+    "tasks": [
+        {
+            "task_id": "1-0-0-1-0-mergebamalignment",
+            "is_boundary": false,
+            "step_id": "1-0",
+            "run_id": "1-0-0",
+            "user_id": 0,
+            "command": "picard MergeBamAlignment ",
+            "paramwithregex": [
+                {
+                    "from": [
+                        "1-0-0-1-4-alignmentreads"
+                    ],
+                    "secondary_files": null,
+                    "regex": [
+                        "*.bam"
+                    ],
+                    "prefix": "ALIGNED="
+                },
+                {
+                    "from": [
+                        "1-0-0-1-8-fastqtobam"
+                    ],
+                    "secondary_files": null,
+                    "regex": [
+                        "*unmapped.bam"
+                    ],
+                    "prefix": " UNMAPPED="
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "RB1_hg38_fin.bam"
+                    ],
+                    "prefix": " O="
+                },
+                {
+                    "from": null,
+                    "secondary_files": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "regex": [
+                        "/home/ubuntu/references/Homo_sapiens_assembly38.fasta"
+                    ],
+                    "prefix": " R="
+                }
+            ],
+            "parent_tasks_id": [
+                "1-0-0-1-8-fastqtobam",
+                "1-0-0-1-4-alignmentreads"
+            ],
+            "children_tasks_id": [
+                "1-0-0-1-1-markduplicates"
+            ],
+            "output_location": null,
+            "docker_image": [
+                "vinbdi/biotools"
+            ],
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-1-1-markduplicates",
+            "is_boundary": false,
+            "step_id": "1-1",
+            "run_id": "1-0-0",
+            "user_id": 0,
+            "command": "picard MarkDuplicates ",
+            "paramwithregex": [
+                {
+                    "from": [
+                        "1-0-0-1-0-mergebamalignment"
+                    ],
+                    "secondary_files": null,
+                    "regex": [
+                        "*.bam"
+                    ],
+                    "prefix": "I="
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "RB1.bam.txt"
+                    ],
+                    "prefix": " O="
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": null,
+                    "prefix": "(inputs.output_report_txt) ASO=queryname TMP_DIR=tmp"
+                }
+            ],
+            "parent_tasks_id": [
+                "1-0-0-1-0-mergebamalignment"
+            ],
+            "children_tasks_id": [
+                "1-0-0-1-2-sortbam"
+            ],
+            "output_location": null,
+            "docker_image": [
+                "vinbdi/biotools"
+            ],
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-1-2-sortbam",
+            "is_boundary": false,
+            "step_id": "1-2",
+            "run_id": "1-0-0",
+            "user_id": 0,
+            "command": "picard SortSam ",
+            "paramwithregex": [
+                {
+                    "from": [
+                        "1-0-0-1-1-markduplicates"
+                    ],
+                    "secondary_files": [
+                        "^.bai",
+                        "^.bam.md5"
+                    ],
+                    "regex": [
+                        "*.bam$"
+                    ],
+                    "prefix": "I="
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "RB1_hg38_sorted.bam"
+                    ],
+                    "prefix": " O="
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": null,
+                    "prefix": " SO=coordinate CREATE_INDEX=true CREATE_MD5_FILE=false"
+                }
+            ],
+            "parent_tasks_id": [
+                "1-0-0-1-1-markduplicates"
+            ],
+            "children_tasks_id": [
+                "1-0-0-1-9-recalibratebqsr",
+                "1-0-0-1-5-applybqsr"
+            ],
+            "output_location": null,
+            "docker_image": [
+                "vinbdi/biotools"
+            ],
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-1-3-qcfastq",
+            "is_boundary": false,
+            "step_id": "1-3",
+            "run_id": "1-0-0",
+            "user_id": 0,
+            "command": "fastqc ",
+            "paramwithregex": [
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "/home/ubuntu/input_wes/RB1_1.fastq",
+                        "/home/ubuntu/input_wes/RB1_2.fastq"
+                    ],
+                    "prefix": ""
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": null,
+                    "prefix": " -o ."
+                }
+            ],
+            "parent_tasks_id": [
+                "1-0-0-bigbang"
+            ],
+            "children_tasks_id": [
+                "1-0-0-ragnarok"
+            ],
+            "output_location": null,
+            "docker_image": [
+                "vinbdi/biotools"
+            ],
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-1-4-alignmentreads",
+            "is_boundary": false,
+            "step_id": "1-4",
+            "run_id": "1-0-0",
+            "user_id": 0,
+            "command": "bwa mem ",
+            "paramwithregex": [
+                {
+                    "from": null,
+                    "secondary_files": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "regex": [
+                        "/home/ubuntu/references/Homo_sapiens_assembly38.fasta"
+                    ],
+                    "prefix": ""
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "/home/ubuntu/input_wes/RB1_1.fastq"
+                    ],
+                    "prefix": " "
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "/home/ubuntu/input_wes/RB1_2.fastq"
+                    ],
+                    "prefix": " "
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "RB1_hg38_mapped.bam"
+                    ],
+                    "prefix": " | samtools view -Shb -o "
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": null,
+                    "prefix": " -"
+                }
+            ],
+            "parent_tasks_id": [
+                "1-0-0-bigbang"
+            ],
+            "children_tasks_id": [
+                "1-0-0-1-0-mergebamalignment"
+            ],
+            "output_location": null,
+            "docker_image": [
+                "vinbdi/biotools"
+            ],
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-1-5-applybqsr",
+            "is_boundary": false,
+            "step_id": "1-5",
+            "run_id": "1-0-0",
+            "user_id": 0,
+            "command": "gatk ApplyBQSR ",
+            "paramwithregex": [
+                {
+                    "from": null,
+                    "secondary_files": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "regex": [
+                        "/home/ubuntu/references/Homo_sapiens_assembly38.fasta"
+                    ],
+                    "prefix": "-R "
+                },
+                {
+                    "from": [
+                        "1-0-0-1-2-sortbam"
+                    ],
+                    "secondary_files": [
+                        "^.bai",
+                        "^.bam.md5"
+                    ],
+                    "regex": [
+                        "*.bam"
+                    ],
+                    "prefix": " -I "
+                },
+                {
+                    "from": [
+                        "1-0-0-1-9-recalibratebqsr"
+                    ],
+                    "secondary_files": null,
+                    "regex": [
+                        "*.recal.table"
+                    ],
+                    "prefix": " -bqsr "
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "RB1_hg38_arr.bam"
+                    ],
+                    "prefix": " -O "
+                }
+            ],
+            "parent_tasks_id": [
+                "1-0-0-1-9-recalibratebqsr",
+                "1-0-0-1-2-sortbam"
+            ],
+            "children_tasks_id": [
+                "1-0-0-1-6-variantcalling"
+            ],
+            "output_location": null,
+            "docker_image": [
+                "vinbdi/biotools"
+            ],
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-1-6-variantcalling",
+            "is_boundary": false,
+            "step_id": "1-6",
+            "run_id": "1-0-0",
+            "user_id": 0,
+            "command": "gatk HaplotypeCaller ",
+            "paramwithregex": [
+                {
+                    "from": null,
+                    "secondary_files": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "regex": [
+                        "/home/ubuntu/references/Homo_sapiens_assembly38.fasta"
+                    ],
+                    "prefix": "-R "
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "/home/ubuntu/input_wes/RB1_padding_100.bed"
+                    ],
+                    "prefix": " -L "
+                },
+                {
+                    "from": [
+                        "1-0-0-1-5-applybqsr"
+                    ],
+                    "secondary_files": [
+                        "^.bai",
+                        "^.bam.md5"
+                    ],
+                    "regex": [
+                        "*.bam"
+                    ],
+                    "prefix": " -I "
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": null,
+                    "prefix": " -O "
+                }
+            ],
+            "parent_tasks_id": [
+                "1-0-0-1-5-applybqsr"
+            ],
+            "children_tasks_id": [
+                "1-0-0-1-7-genotypegvcf"
+            ],
+            "output_location": null,
+            "docker_image": [
+                "vinbdi/biotools"
+            ],
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-1-7-genotypegvcf",
+            "is_boundary": false,
+            "step_id": "1-7",
+            "run_id": "1-0-0",
+            "user_id": 0,
+            "command": "gatk GenotypeGVCFs ",
+            "paramwithregex": [
+                {
+                    "from": null,
+                    "secondary_files": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "regex": [
+                        "/home/ubuntu/references/Homo_sapiens_assembly38.fasta"
+                    ],
+                    "prefix": "-R "
+                },
+                {
+                    "from": [
+                        "1-0-0-1-6-variantcalling"
+                    ],
+                    "secondary_files": [
+                        "^.tbi",
+                        "^.vcf.md5"
+                    ],
+                    "regex": [
+                        "*.vcf$"
+                    ],
+                    "prefix": " -V "
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": null,
+                    "prefix": " -O "
+                }
+            ],
+            "parent_tasks_id": [
+                "1-0-0-1-6-variantcalling"
+            ],
+            "children_tasks_id": [
+                "1-0-0-ragnarok"
+            ],
+            "output_location": null,
+            "docker_image": [
+                "vinbdi/biotools"
+            ],
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-1-8-fastqtobam",
+            "is_boundary": false,
+            "step_id": "1-8",
+            "run_id": "1-0-0",
+            "user_id": 0,
+            "command": "picard FastqToSam ",
+            "paramwithregex": [
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "RB1"
+                    ],
+                    "prefix": "SM="
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "RB1"
+                    ],
+                    "prefix": " RG="
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "/home/ubuntu/input_wes/RB1_1.fastq"
+                    ],
+                    "prefix": "  LIBRARY_NAME=lib1 PLATFORM=ILLUMINA F1="
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": null,
+                    "prefix": " F2="
+                }
+            ],
+            "parent_tasks_id": [
+                "1-0-0-bigbang"
+            ],
+            "children_tasks_id": [
+                "1-0-0-1-0-mergebamalignment"
+            ],
+            "output_location": null,
+            "docker_image": [
+                "vinbdi/biotools"
+            ],
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-1-9-recalibratebqsr",
+            "is_boundary": false,
+            "step_id": "1-9",
+            "run_id": "1-0-0",
+            "user_id": 0,
+            "command": "gatk BaseRecalibrator ",
+            "paramwithregex": [
+                {
+                    "from": null,
+                    "secondary_files": [
+                        ".64.amb",
+                        ".64.ann",
+                        ".64.bwt",
+                        ".64.pac",
+                        ".64.sa",
+                        ".64.alt",
+                        ".dict",
+                        ".fai"
+                    ],
+                    "regex": [
+                        "/home/ubuntu/references/Homo_sapiens_assembly38.fasta"
+                    ],
+                    "prefix": "-R "
+                },
+                {
+                    "from": [
+                        "1-0-0-1-2-sortbam"
+                    ],
+                    "secondary_files": [
+                        "^.bai",
+                        "^.bam.md5"
+                    ],
+                    "regex": [
+                        "*.bam"
+                    ],
+                    "prefix": " --use-original-qualities -I "
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": [
+                        "/home/ubuntu/references/Homo_sapiens_assembly38.dbsnp138.vcf.gz"
+                    ],
+                    "prefix": "  --known-sites "
+                },
+                {
+                    "from": null,
+                    "secondary_files": null,
+                    "regex": null,
+                    "prefix": " -O "
+                }
+            ],
+            "parent_tasks_id": [
+                "1-0-0-1-2-sortbam"
+            ],
+            "children_tasks_id": [
+                "1-0-0-1-5-applybqsr"
+            ],
+            "output_location": null,
+            "docker_image": [
+                "vinbdi/biotools"
+            ],
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-bigbang",
+            "is_boundary": true,
+            "step_id": "",
+            "run_id": "",
+            "user_id": 0,
+            "command": "",
+            "paramwithregex": null,
+            "parent_tasks_id": null,
+            "children_tasks_id": [
+                "1-0-0-1-3-qcfastq",
+                "1-0-0-1-4-alignmentreads",
+                "1-0-0-1-8-fastqtobam"
+            ],
+            "output_location": null,
+            "docker_image": null,
+            "queue_level": 0,
+            "status": 0
+        },
+        {
+            "task_id": "1-0-0-ragnarok",
+            "is_boundary": true,
+            "step_id": "",
+            "run_id": "",
+            "user_id": 0,
+            "command": "",
+            "paramwithregex": null,
+            "parent_tasks_id": [
+                "1-0-0-1-3-qcfastq",
+                "1-0-0-1-7-genotypegvcf"
+            ],
+            "children_tasks_id": null,
+            "output_location": null,
+            "docker_image": null,
+            "queue_level": 0,
+            "status": 0
+        }
+    ]
+}

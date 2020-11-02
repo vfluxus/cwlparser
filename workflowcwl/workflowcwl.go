@@ -1,6 +1,7 @@
 package workflowcwl
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -56,6 +57,67 @@ func (wfCWL *WorkflowCWL) Unmarshal(folder string, file string) (err error) {
 			newCmdLineTool = new(commandlinetool.CommandLineTool)
 		)
 		if err := yaml.Unmarshal(stepFileData, newCmdLineTool); err != nil {
+			return err
+		}
+		if err := addWorkflowNameAndFrom(wfCWL.Steps[stepIndex], newCmdLineTool); err != nil {
+			return err
+		}
+		wfCWL.Steps[stepIndex].CommandLineTool = newCmdLineTool
+	}
+
+	return nil
+}
+
+type fileForm struct {
+	Name    string      `json:"name"`
+	Content string      `json:"content"`
+	Steps   []*stepForm `json:"steps"`
+}
+
+type stepForm struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
+}
+
+// UnmarshalJson use in-mem data to unmarshal json
+func (wfCWL *WorkflowCWL) UnmarshalJson(data []byte) (err error) {
+	var (
+		ff      *fileForm
+		fileMap = make(map[string]*stepForm)
+	)
+
+	if err := json.Unmarshal(data, &ff); err != nil {
+		return err
+	}
+
+	// create map also, check for duplicate file name
+	for stepIndex := range ff.Steps {
+		if _, ok := fileMap[ff.Steps[stepIndex].Name]; ok {
+			return fmt.Errorf("Duplicate file name %s", ff.Steps[stepIndex].Name)
+		}
+		fileMap[ff.Steps[stepIndex].Name] = ff.Steps[stepIndex]
+	}
+
+	if err := yaml.Unmarshal([]byte(ff.Content), wfCWL); err != nil {
+		return err
+	}
+
+	// add children
+	if err := wfCWL.addChildren(); err != nil {
+		return err
+	}
+
+	// loop through step, read & unmarshal each step
+	for stepIndex := range wfCWL.Steps {
+		step, ok := fileMap[wfCWL.Steps[stepIndex].Run]
+		if !ok {
+			return fmt.Errorf("File not found %s", wfCWL.Steps[stepIndex].Run)
+		}
+
+		var (
+			newCmdLineTool = new(commandlinetool.CommandLineTool)
+		)
+		if err := yaml.Unmarshal([]byte(step.Content), newCmdLineTool); err != nil {
 			return err
 		}
 		if err := addWorkflowNameAndFrom(wfCWL.Steps[stepIndex], newCmdLineTool); err != nil {

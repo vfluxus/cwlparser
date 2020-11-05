@@ -97,6 +97,34 @@ func checkTypeAndAddValue(val interface{}, valType []string) (valStr []string, e
 			return nil, fmt.Errorf("Not support input type: %v", valCast)
 		}
 
+	case map[string]interface{}:
+		var (
+			fileFlag bool = false
+		)
+		if class, ok := valCast["class"]; ok {
+			switch classCast := class.(type) {
+			case string:
+				if classCast == "File" {
+					fileFlag = true
+				}
+
+				if fileFlag {
+					if path, ok := valCast["path"]; ok {
+						if err := libs.AppendStringSliceWithInterface(&valStr, path); err != nil {
+							return nil, err
+						}
+						return valStr, nil
+					}
+					return nil, fmt.Errorf("path not found in: %v", valCast)
+				}
+
+			default:
+				return nil, fmt.Errorf("Not support class %v yet", class)
+			}
+		} else {
+			return nil, fmt.Errorf("Not support input type: %v", valCast)
+		}
+
 	default:
 		return nil, fmt.Errorf("Can not cast value %v - type: %T", val, val)
 	}

@@ -9,8 +9,8 @@ import (
 )
 
 // generateRunID ...
-func generateRunID(workflowID int, userid int, retry int) (runID string) {
-	return strconv.Itoa(workflowID) + "-" + strconv.Itoa(userid) + "-" + strconv.Itoa(retry)
+func generateRunID(workflowID string, userid int, retry int) (runID string) {
+	return workflowID + "-" + strconv.Itoa(userid) + "-" + strconv.Itoa(retry)
 }
 
 func generateTaskID(runID string, stepID string, stepWfName string) (taskID string) {

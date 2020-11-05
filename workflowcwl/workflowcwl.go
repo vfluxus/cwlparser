@@ -1,7 +1,6 @@
 package workflowcwl
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -68,37 +67,21 @@ func (wfCWL *WorkflowCWL) Unmarshal(folder string, file string) (err error) {
 	return nil
 }
 
-type fileForm struct {
-	Name    string      `json:"name"`
-	Content string      `json:"content"`
-	Steps   []*stepForm `json:"steps"`
-}
-
-type stepForm struct {
-	Name    string `json:"name"`
-	Content string `json:"content"`
-}
-
 // UnmarshalJson use in-mem data to unmarshal json
-func (wfCWL *WorkflowCWL) UnmarshalJson(data []byte) (err error) {
+func (wfCWL *WorkflowCWL) UnmarshalJson(f *HttpCWLForm) (err error) {
 	var (
-		ff      *fileForm
-		fileMap = make(map[string]*stepForm)
+		fileMap = make(map[string]*HttpStepForm)
 	)
 
-	if err := json.Unmarshal(data, &ff); err != nil {
-		return err
-	}
-
 	// create map also, check for duplicate file name
-	for stepIndex := range ff.Steps {
-		if _, ok := fileMap[ff.Steps[stepIndex].Name]; ok {
-			return fmt.Errorf("Duplicate file name %s", ff.Steps[stepIndex].Name)
+	for stepIndex := range f.Steps {
+		if _, ok := fileMap[f.Steps[stepIndex].Name]; ok {
+			return fmt.Errorf("Duplicate file name %s", f.Steps[stepIndex].Name)
 		}
-		fileMap[ff.Steps[stepIndex].Name] = ff.Steps[stepIndex]
+		fileMap[f.Steps[stepIndex].Name] = f.Steps[stepIndex]
 	}
 
-	if err := yaml.Unmarshal([]byte(ff.Content), wfCWL); err != nil {
+	if err := yaml.Unmarshal([]byte(f.Content), wfCWL); err != nil {
 		return err
 	}
 

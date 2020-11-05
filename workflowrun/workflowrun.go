@@ -1,7 +1,7 @@
 package workflowrun
 
 type Run struct {
-	WorkflowID int     `json:"workflow_id"`
+	WorkflowID string  `json:"workflow_id"`
 	RunID      string  `json:"run_id"`
 	User_ID    int     `json:"user_id"`
 	Status     int     `json:"status"`

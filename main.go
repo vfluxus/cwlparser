@@ -1,4 +1,4 @@
-package main
+package cwlparser
 
 import (
 	"bytes"
@@ -20,7 +20,17 @@ func ParseCWL(folder string, cwlfile string) (wfCWL *workflowcwl.WorkflowCWL, er
 	return wfCWL, nil
 }
 
-func CreateWorkflowDAG(wfCWL *workflowcwl.WorkflowCWL, id int) (wfDAG *workflowdag.WorkflowDAG, err error) {
+func ParseCWLInMem(f *workflowcwl.HttpCWLForm) (wfCWL *workflowcwl.WorkflowCWL, err error) {
+	wfCWL = new(workflowcwl.WorkflowCWL)
+
+	if err := wfCWL.UnmarshalJson(f); err != nil {
+		return nil, err
+	}
+
+	return wfCWL, nil
+}
+
+func CreateWorkflowDAG(wfCWL *workflowcwl.WorkflowCWL, id string) (wfDAG *workflowdag.WorkflowDAG, err error) {
 	wfDAG, err = workflowdag.ConvertFromCWL(wfCWL, id)
 
 	if err != nil {

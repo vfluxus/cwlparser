@@ -1,17 +1,27 @@
 # CWL PARSER
 
+## Table of contents:
 - [CWL PARSER](#cwl-parser)
+  - [Table of contents:](#table-of-contents)
   - [1. DESCRIPTION](#1-description)
   - [2. CWL EXAMPLES](#2-cwl-examples)
     - [2.1.Workflow](#21workflow)
     - [2.2. CommandLineTool](#22-commandlinetool)
-  - [3. Golang struct](#3-golang-struct)
-    - [3.1. CommandLineTool](#31-commandlinetool)
-    - [3.2. Workflow](#32-workflow)
-  - [4. Convert to dag:](#4-convert-to-dag)
-    - [4.1. Workflow DAG Struct](#41-workflow-dag-struct)
-    - [4.2. How to convert](#42-how-to-convert)
-  - [5. Not support these things yet:](#5-not-support-these-things-yet)
+  - [3. CWL struct:](#3-cwl-struct)
+    - [3.1. CWL CommandLineTool:](#31-cwl-commandlinetool)
+    - [3.2. Workflow CWL:](#32-workflow-cwl)
+  - [4. Convert to DAG:](#4-convert-to-dag)
+    - [4.1. Workflow DAG Struct:](#41-workflow-dag-struct)
+    - [4.2. How to convert:](#42-how-to-convert)
+  - [5. Convert to run:](#5-convert-to-run)
+    - [5.1. Run struct:](#51-run-struct)
+    - [5.2. Convert Workflow DAG to Run:](#52-convert-workflow-dag-to-run)
+      - [5.2.1. Convert Workflow DAG to Run:](#521-convert-workflow-dag-to-run)
+      - [5.2.2. Convert step to task:](#522-convert-step-to-task)
+  - [6. Not support these things yet:](#6-not-support-these-things-yet)
+  - [7. Soon support:](#7-soon-support)
+
+___
 
 ## 1. DESCRIPTION
 - Parse CWL to Golang struct
@@ -109,206 +119,32 @@ arguments:
 baseCommand: [string]
 ```
 
-## 3. Golang struct
+## 3. CWL struct:
 
-### 3.1. CommandLineTool
-```go
-type CommandLineTool struct {
-	Version      string         `yaml:"cwlVersion"`
-	Class        string         `yaml:"class"`
-	ID           string         `yaml:"id"`
-	Requirements []*requirement `yaml:"requirements"`
-	Inputs       inputs         `yaml:"inputs"`
-	BaseCommand  baseCommand    `yaml:"baseCommand"`
-	Arguments    arguments      `yaml:"arguments"`
-	Outputs      outputs        `yaml:"outputs"`
-}
+### 3.1. CWL CommandLineTool:
 
-// requirement
-type requirement struct {
-	Class      string `yaml:"class"`
-	DockerPull string `yaml:"dockerPull"`
-	RamMin     int    `yaml:"ramMin"`
-	CpuMin     int    `yaml:"cpuMin"`
-}
+- [CommandLineTool](commandlinetool/commandlinetool.go)
+- [Base Command](commandlinetool/basecommand.go)
+- [Arguments](commandlinetool/arguments.go)
+- [Inputs](commandlinetool/inputs.go)
+- [Output](commandlinetool/outputs.go)
 
-// inputs
-type inputs []*input
+### 3.2. Workflow CWL:
 
-type input struct {
-	Name           string `yaml:""`
-	WorkflowName   string
-	From           string
-	Type           []string      `yaml:""`
-	SecondaryFiles []string      `yaml:""`
-	InputBinding   *inputBinding `yaml:"inputBinding"`
-}
+- [Workflow cwl](workflowcwl/workflowcwl.go)
+- [Steps](workflowcwl/steps.go)
+- [Inputs](workflowcwl/inputs.go)
+- [Outputs](workflowcwl/outputs.go)
+- [HTTP Form](workflowcwl/httpForm.go)
 
-type inputBinding struct {
-	Position int    `yaml:"position"`
-	Prefix   string `yaml:"prefix"`
-}
+## 4. Convert to DAG:
 
-// baseCommand
-type baseCommand []string
+### 4.1. Workflow DAG Struct:
 
-// arguments
-type arguments []*argument
+- [workflow dag](workflowdag/workflowdag.go)
+- [steps](workflowdag/step.go)
 
-type argument struct {
-	Position   int    `yaml:"position"`
-	ShellQuote bool   `yaml:"shellQuote"`
-	ValueFrom  string `yaml:"valueFrom"`
-}
-
-// outputs
-type outputs []*output
-
-type output struct {
-	Name           string        `yaml:""`
-	Type           []string      `yaml:"type"`
-	OutputBinding  outputBinding `yaml:"outputBinding"`
-	SecondaryFiles []string      `yaml:"secondaryFiles"`
-}
-
-type outputBinding struct {
-	Glob []string `yaml:"glob"`
-}
-```
-
-### 3.2. Workflow
-```go
-type WorkflowCWL struct {
-	Version      string         `yaml:"cwlVersion"`
-	Doc          string         `yaml:"doc"`
-	ID           string         `yaml:"id"`
-	Requirements []*requirement `yaml:"requirements"`
-	Inputs       inputs         `yaml:"inputs"`
-	Outputs      outputs        `yaml:"outputs"`
-	Steps        steps          `yaml:"steps"`
-}
-
-// requirement
-type requirement struct {
-	Class string `yaml:"class"`
-}
-
-// inputs
-type inputs []*input
-
-type input struct {
-	Name           string
-	Type           []string
-	SecondaryFiles []string
-}
-
-// outputs
-type outputs []*output
-
-type output struct {
-	Name         string
-	Type         []string
-	OutputSource []string
-}
-
-// steps
-type steps []*step
-
-type Step struct {
-	Name            string
-	Run             string
-	Scatter         string `yaml:"scatter"`
-	Parents         []string
-	Children        []string
-	In              stepIns  `yaml:"in"`
-	Out             stepOuts `yaml:"out"`
-	CommandLineTool *commandlinetool.CommandLineTool
-}
-// step in
-type stepIns []*stepIn
-
-type stepIn struct {
-	Name      string
-	Source    string
-	ValueFrom string
-}
-
-// step out
-type stepOuts []*stepOut
-
-type stepOut struct {
-	Name string
-}
-```
-
-## 4. Convert to dag:
-
-### 4.1. Workflow DAG Struct
-
-```go
-// WorkflowDAG 
-type WorkflowDAG struct {
-	Name  string  `json:"name"`
-	Steps []*Step `json:"steps"`
-}
-
-// Step
-package workflowdag
-
-type Step struct {
-	ID           int
-	Name         string
-	WorkflowName string
-	DockerImage  string
-	Resource     struct {
-		CPU int
-		Ram int
-	}
-	BaseCommand  []string
-	StepInput    []*stepInput
-	StepOutput   []*stepOutput
-	Arguments    []*Argument
-	ParentName   []string
-	ParentID     []int
-	ChildrenName []string
-	ChildrenID   []int
-}
-
-type stepInput struct {
-	Name           string
-	WorkflowName   string
-	From           string
-	Type           []string
-	SecondaryFiles []string
-	Value          []string
-	NullFlag       bool
-	Regex          bool
-	Binding        *stepInputBinding
-}
-
-type stepInputBinding struct {
-	Postition int
-	Prefix    string
-}
-
-type stepOutput struct {
-	Name           string
-	WorkflowName   string
-	Type           []string
-	Patern         []string
-	Regex          []string
-	SecondaryFiles []string
-}
-
-type Argument struct {
-    Postition int
-    Index     int
-	Input     *stepInput
-	Prefix    string
-}
-```
-
-### 4.2. How to convert
+### 4.2. How to convert:
 - Convert step CWL to step DAG
     -  Easy converted:
         - ID
@@ -329,9 +165,54 @@ type Argument struct {
         - Generate from arguments.ValueFrom
         - Link to stepInputs (if $(inputs.[stepInput]))
         - Each argument only have 1 step Inputs. 1 Argument.ValueFrom can be separated to multiple arguments
-    - #TODO: Add step inputs to arguments
+    -** #TODO: Add step inputs to arguments**
 
-## 5. Not support these things yet:
+## 5. Convert to run:
+
+### 5.1. Run struct:
+
+- [Run](workflowrun/workflowrun.go)
+
+### 5.2. Convert Workflow DAG to Run:
+
+#### 5.2.1. Convert Workflow DAG to Run:
+- ID generate:
+  - WorkflowID
+  - UserID
+  - Retry time
+  
+- Easy converted:
+  - Workflow ID
+  - User ID
+  - Status: default 0
+
+#### 5.2.2. Convert step to task:
+- ID generate:
+  - RunID
+  - Sequence
+  - Task name
+
+- ID special:
+  - Start node: RunID - **bigbang**
+  - End node: RunID - **ragnarok**
+  
+- Easy converted:
+  - TaskID
+  - StepID
+  - ChildrenTaskID: init by StepID, replaced by TaskID
+  - ParentTaskID: init by StepID, replaced by TaskID
+  - Command: Join baseCommand
+  - DockerImages:
+
+- Convert Argument to param with regex struct
+  - Add prefix
+  - Add from for param
+  - Add secondary files, value, prefix
+
+## 6. Not support these things yet:
 - Scatter
 - $(runtime.something)
 - add inputs value in step output
+
+## 7. Soon support:
+- Inputs index

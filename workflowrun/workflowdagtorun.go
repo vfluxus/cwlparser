@@ -3,35 +3,27 @@ package workflowrun
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
+	"github.com/vfluxus/cwlparser/libs"
 	"github.com/vfluxus/cwlparser/workflowdag"
 )
 
 // generateRunID ...
-func generateRunID(workflowID string, userid int, retry int) (runID string) {
-	return workflowID + "-" + strconv.Itoa(userid) + "-" + strconv.Itoa(retry)
+func generateRunID(workflowID string, userid string, retry int) (runID string) {
+	return workflowID + "-" + libs.GetLowerLetters(userid) + "-" + strconv.Itoa(retry)
 }
 
 func generateTaskID(runID string, stepID string, stepWfName string) (taskID string) {
-	parsedStepWfName := new(strings.Builder)
-	for i := range stepWfName {
-		if stepWfName[i] >= 'a' && stepWfName[i] <= 'z' {
-			parsedStepWfName.WriteByte(stepWfName[i])
-		}
-		if stepWfName[i] >= 'A' && stepWfName[i] <= 'Z' {
-			parsedStepWfName.WriteByte(stepWfName[i] + 32)
-		}
-	}
-	return runID + "-" + stepID + "-" + parsedStepWfName.String()
+	return runID + "-" + stepID + "-" + libs.GetLowerLetters(stepWfName)
 }
 
 // ConvertWorkflowDAGToRun ...
-func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userID int, retry int) (run *Run, err error) {
+func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userID string, retry int) (run *Run, err error) {
 	run = &Run{
 		WorkflowID: wfDAG.ID,
 		RunID:      generateRunID(wfDAG.ID, userID, retry),
-		User_ID:    userID,
+		RunName:    wfDAG.Name,
+		UserID:     userID,
 		Status:     0,
 	}
 	var (
@@ -40,7 +32,7 @@ func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userID int, retry i
 	)
 
 	for stepIndex := range wfDAG.Steps {
-		newTask, err := convertFromStepDAGToTask(wfDAG.Steps[stepIndex], generateTaskID(run.RunID, wfDAG.Steps[stepIndex].ID, wfDAG.Steps[stepIndex].WorkflowName))
+		newTask, err := convertFromStepDAGToTask(wfDAG.Steps[stepIndex], generateTaskID(run.RunID, wfDAG.Steps[stepIndex].ID, wfDAG.Steps[stepIndex].WorkflowName), wfDAG.Steps[stepIndex].WorkflowName)
 		if err != nil {
 			return nil, err
 		}

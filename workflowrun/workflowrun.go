@@ -3,17 +3,19 @@ package workflowrun
 type Run struct {
 	WorkflowID string  `json:"workflow_id"`
 	RunID      string  `json:"run_id"`
-	User_ID    int     `json:"user_id"`
+	RunName    string  `json:"run_name"`
+	UserID     string  `json:"user_id"`
 	Status     int     `json:"status"`
 	Tasks      []*Task `json:"tasks"`
 }
 
 type Task struct {
 	TaskID          string            `json:"task_id"`
+	TaskName        string            `json:"task_name"`
 	IsBoundary      bool              `json:"is_boundary"`
 	StepID          string            `json:"step_id"`
 	RunID           string            `json:"run_id"`
-	UserID          int               `json:"user_id"`
+	UserID          string            `json:"user_id"`
 	Command         string            `json:"command"`
 	ParamsWithRegex []*ParamWithRegex `json:"paramwithregex"`
 	ParentTasksID   []string          `json:"parent_tasks_id"`

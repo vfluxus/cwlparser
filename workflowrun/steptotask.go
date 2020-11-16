@@ -7,9 +7,10 @@ import (
 )
 
 // convertFromStepDAGToTask 1 step -> 1 task, 1 arguments -> 1 param with regex
-func convertFromStepDAGToTask(step *workflowdag.Step, taskID string) (task *Task, err error) {
+func convertFromStepDAGToTask(step *workflowdag.Step, taskID string, taskName string) (task *Task, err error) {
 	task = &Task{
 		TaskID:          taskID,
+		TaskName:        taskName,
 		IsBoundary:      false,
 		StepID:          step.ID,
 		ChildrenTasksID: step.ChildrenName, // for later replacement

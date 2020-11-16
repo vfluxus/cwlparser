@@ -40,7 +40,7 @@ func CreateWorkflowDAG(wfCWL *workflowcwl.WorkflowCWL, id string) (wfDAG *workfl
 	return wfDAG, nil
 }
 
-func CreateRunFromWorkflow(wfDAG *workflowdag.WorkflowDAG, inputs map[string]interface{}, userID int, retry int) (run *workflowrun.Run, err error) {
+func CreateRunFromWorkflow(wfDAG *workflowdag.WorkflowDAG, inputs map[string]interface{}, userID string, retry int) (run *workflowrun.Run, err error) {
 	if err := workflowdag.AddValueToStepInAndArg(inputs, wfDAG); err != nil {
 		return nil, err
 	}
@@ -100,8 +100,4 @@ func CreateGraphvizDot(run *workflowrun.Run) (dot string, err error) {
 	}
 
 	return buf.String(), nil
-}
-
-func main() {
-
 }

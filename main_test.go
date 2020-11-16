@@ -197,7 +197,7 @@ func TestConvertWorkflowDAGToRun(t *testing.T) {
 		cwlfile    = "wgs.cwl"
 		inputPath  = "wgs.yml"
 		workflowid = "1"
-		userID     = 0
+		userID     = "0"
 		retry      = 0
 		data       = make(map[string]interface{})
 		err        error
@@ -245,7 +245,7 @@ func TestCreateRunFromWorkflow(t *testing.T) {
 		cwlfile    = "wes.cwl"
 		inputPath  = "wes.yml"
 		workflowid = "1"
-		userID     = 0
+		userID     = "0"
 		retry      = 0
 		data       = make(map[string]interface{})
 		err        error
@@ -284,7 +284,7 @@ func TestCreateGraphViz(t *testing.T) {
 		cwlfile    = "wes.cwl"
 		inputPath  = "wes.yml"
 		workflowid = "1"
-		userID     = 0
+		userID     = "0"
 		retry      = 0
 		data       = make(map[string]interface{})
 		err        error
@@ -360,7 +360,7 @@ func TestCreateGraphvizDot(t *testing.T) {
 		cwlfile    = "wes.cwl"
 		inputPath  = "wes.yml"
 		workflowid = "1"
-		userID     = 0
+		userID     = "thanhpp18@gmail.com"
 		retry      = 0
 		data       = make(map[string]interface{})
 		err        error

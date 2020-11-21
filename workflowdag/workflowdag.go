@@ -8,14 +8,12 @@ import (
 )
 
 type WorkflowDAG struct {
-	ID    string  `json:"id"`
 	Name  string  `json:"name"`
 	Steps []*Step `json:"steps"`
 }
 
-func ConvertFromCWL(wfCWL *workflowcwl.WorkflowCWL, id string) (wfDAG *WorkflowDAG, err error) {
+func ConvertFromCWL(wfCWL *workflowcwl.WorkflowCWL) (wfDAG *WorkflowDAG, err error) {
 	wfDAG = &WorkflowDAG{
-		ID:   id,
 		Name: wfCWL.ID,
 	}
 
@@ -24,7 +22,7 @@ func ConvertFromCWL(wfCWL *workflowcwl.WorkflowCWL, id string) (wfDAG *WorkflowD
 	)
 	idCounter := 0
 	for stepCWLIndex := range wfCWL.Steps {
-		id := wfDAG.ID + "-" + strconv.Itoa(idCounter)
+		id := strconv.Itoa(idCounter)
 		newStepDAG, err := ConvertStepCWLtoStepDAG(wfCWL, wfCWL.Steps[stepCWLIndex], id)
 		if err != nil {
 			return nil, err

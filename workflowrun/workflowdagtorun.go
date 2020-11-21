@@ -3,14 +3,19 @@ package workflowrun
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/vfluxus/cwlparser/libs"
 	"github.com/vfluxus/cwlparser/workflowdag"
 )
 
-// generateRunID ...
-func generateRunID(workflowID string, userid string, retry int) (runID string) {
-	return workflowID + "-" + libs.GetLowerLetters(userid) + "-" + strconv.Itoa(retry)
+// generateRunID remove behind @ from userid, get letter & lowercases
+func generateRunID(runid int, userid string) (runID string) {
+	if id := strings.Index(userid, "@"); id > 0 {
+		userid = userid[:id]
+	}
+
+	return strconv.Itoa(runid) + "-" + libs.GetLowerLetters(userid)
 }
 
 func generateTaskID(runID string, stepID string, stepWfName string) (taskID string) {
@@ -18,13 +23,12 @@ func generateTaskID(runID string, stepID string, stepWfName string) (taskID stri
 }
 
 // ConvertWorkflowDAGToRun ...
-func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userID string, retry int) (run *Run, err error) {
+func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userID string, runID int) (run *Run, err error) {
 	run = &Run{
-		WorkflowID: wfDAG.ID,
-		RunID:      generateRunID(wfDAG.ID, userID, retry),
-		RunName:    wfDAG.Name,
-		UserID:     userID,
-		Status:     0,
+		RunID:   generateRunID(runID, userID),
+		RunName: wfDAG.Name,
+		UserID:  userID,
+		Status:  0,
 	}
 	var (
 		taskSl            = make([]*Task, len(wfDAG.Steps))

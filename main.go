@@ -5,6 +5,7 @@ import (
 
 	"github.com/goccy/go-graphviz"
 	"github.com/goccy/go-graphviz/cgraph"
+
 	"github.com/vfluxus/cwlparser/workflowcwl"
 	"github.com/vfluxus/cwlparser/workflowdag"
 	"github.com/vfluxus/cwlparser/workflowrun"
@@ -30,8 +31,8 @@ func ParseCWLInMem(f *workflowcwl.HttpCWLForm) (wfCWL *workflowcwl.WorkflowCWL, 
 	return wfCWL, nil
 }
 
-func CreateWorkflowDAG(wfCWL *workflowcwl.WorkflowCWL, id string) (wfDAG *workflowdag.WorkflowDAG, err error) {
-	wfDAG, err = workflowdag.ConvertFromCWL(wfCWL, id)
+func CreateWorkflowDAG(wfCWL *workflowcwl.WorkflowCWL) (wfDAG *workflowdag.WorkflowDAG, err error) {
+	wfDAG, err = workflowdag.ConvertFromCWL(wfCWL)
 
 	if err != nil {
 		return nil, err
@@ -40,7 +41,7 @@ func CreateWorkflowDAG(wfCWL *workflowcwl.WorkflowCWL, id string) (wfDAG *workfl
 	return wfDAG, nil
 }
 
-func CreateRunFromWorkflow(wfDAG *workflowdag.WorkflowDAG, inputs map[string]interface{}, userID string, retry int) (run *workflowrun.Run, err error) {
+func CreateRunFromWorkflow(wfDAG *workflowdag.WorkflowDAG, inputs map[string]interface{}, userID string, runID int) (run *workflowrun.Run, err error) {
 	if err := workflowdag.AddValueToStepInAndArg(inputs, wfDAG); err != nil {
 		return nil, err
 	}
@@ -49,7 +50,7 @@ func CreateRunFromWorkflow(wfDAG *workflowdag.WorkflowDAG, inputs map[string]int
 		return nil, err
 	}
 
-	run, err = workflowrun.ConvertWorkflowDAGToRun(wfDAG, userID, retry)
+	run, err = workflowrun.ConvertWorkflowDAGToRun(wfDAG, userID, runID)
 	if err != nil {
 		return nil, err
 	}

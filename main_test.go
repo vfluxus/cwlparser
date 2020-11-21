@@ -89,7 +89,7 @@ func TestConvertCWLToDAG(t *testing.T) {
 	if err := newWorkflowCWL.Unmarshal("/home/tpp/go/src/github.com/vfluxus/demo-cwl/wgs", "wgs.cwl"); err != nil {
 		t.Fatal(err)
 	}
-	newWorkflowDAG, err := workflowdag.ConvertFromCWL(newWorkflowCWL, "1")
+	newWorkflowDAG, err := workflowdag.ConvertFromCWL(newWorkflowCWL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ func TestMainCwlAndDag(t *testing.T) {
 	}
 	// libs.PrintJsonFormat(newWorkflowCWL)
 
-	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL, "1")
+	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +130,7 @@ func TestAddValueToStepInAndArg(t *testing.T) {
 	}
 	// libs.PrintJsonFormat(newWorkflowCWL)
 
-	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL, "1")
+	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +166,7 @@ func TestAddOutputToInput(t *testing.T) {
 	}
 	// libs.PrintJsonFormat(newWorkflowCWL)
 
-	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL, "1")
+	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -193,14 +193,13 @@ func TestAddOutputToInput(t *testing.T) {
 
 func TestConvertWorkflowDAGToRun(t *testing.T) {
 	var (
-		folder     = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wgs/"
-		cwlfile    = "wgs.cwl"
-		inputPath  = "wgs.yml"
-		workflowid = "1"
-		userID     = "0"
-		retry      = 0
-		data       = make(map[string]interface{})
-		err        error
+		folder    = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wgs/"
+		cwlfile   = "wgs.cwl"
+		inputPath = "wgs.yml"
+		userID    = "0"
+		retry     = 0
+		data      = make(map[string]interface{})
+		err       error
 	)
 
 	newWorkflowCWL, err := ParseCWL(folder, cwlfile)
@@ -209,7 +208,7 @@ func TestConvertWorkflowDAGToRun(t *testing.T) {
 	}
 	// libs.PrintJsonFormat(newWorkflowCWL)
 
-	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL, workflowid)
+	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -241,14 +240,13 @@ func TestConvertWorkflowDAGToRun(t *testing.T) {
 
 func TestCreateRunFromWorkflow(t *testing.T) {
 	var (
-		folder     = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes/"
-		cwlfile    = "wes.cwl"
-		inputPath  = "wes.yml"
-		workflowid = "1"
-		userID     = "0"
-		retry      = 0
-		data       = make(map[string]interface{})
-		err        error
+		folder    = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes/"
+		cwlfile   = "wes.cwl"
+		inputPath = "wes.yml"
+		userID    = "thanhphanphu18"
+		runID     = 1000
+		data      = make(map[string]interface{})
+		err       error
 	)
 
 	newWorkflowCWL, err := ParseCWL(folder, cwlfile)
@@ -257,7 +255,7 @@ func TestCreateRunFromWorkflow(t *testing.T) {
 	}
 	// libs.PrintJsonFormat(newWorkflowCWL)
 
-	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL, workflowid)
+	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -271,7 +269,7 @@ func TestCreateRunFromWorkflow(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	newRun, err := CreateRunFromWorkflow(newWorkflowDAG, data, userID, retry)
+	newRun, err := CreateRunFromWorkflow(newWorkflowDAG, data, userID, runID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,14 +278,13 @@ func TestCreateRunFromWorkflow(t *testing.T) {
 
 func TestCreateGraphViz(t *testing.T) {
 	var (
-		folder     = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes/"
-		cwlfile    = "wes.cwl"
-		inputPath  = "wes.yml"
-		workflowid = "1"
-		userID     = "0"
-		retry      = 0
-		data       = make(map[string]interface{})
-		err        error
+		folder    = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes/"
+		cwlfile   = "wes.cwl"
+		inputPath = "wes.yml"
+		userID    = "0"
+		retry     = 0
+		data      = make(map[string]interface{})
+		err       error
 	)
 
 	newWorkflowCWL, err := ParseCWL(folder, cwlfile)
@@ -296,7 +293,7 @@ func TestCreateGraphViz(t *testing.T) {
 	}
 	// libs.PrintJsonFormat(newWorkflowCWL)
 
-	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL, workflowid)
+	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -356,14 +353,13 @@ func TestCreateGraphViz(t *testing.T) {
 
 func TestCreateGraphvizDot(t *testing.T) {
 	var (
-		folder     = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes/"
-		cwlfile    = "wes.cwl"
-		inputPath  = "wes.yml"
-		workflowid = "1"
-		userID     = "thanhpp18@gmail.com"
-		retry      = 0
-		data       = make(map[string]interface{})
-		err        error
+		folder    = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes/"
+		cwlfile   = "wes.cwl"
+		inputPath = "wes.yml"
+		userID    = "thanhpp18@gmail.com"
+		retry     = 0
+		data      = make(map[string]interface{})
+		err       error
 	)
 
 	newWorkflowCWL, err := ParseCWL(folder, cwlfile)
@@ -372,7 +368,7 @@ func TestCreateGraphvizDot(t *testing.T) {
 	}
 	// libs.PrintJsonFormat(newWorkflowCWL)
 
-	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL, workflowid)
+	newWorkflowDAG, err := CreateWorkflowDAG(newWorkflowCWL)
 	if err != nil {
 		t.Fatal(err)
 	}

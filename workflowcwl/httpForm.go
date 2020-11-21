@@ -1,8 +1,9 @@
 package workflowcwl
 
 type HttpCWLForm struct {
+	RunID   int             `json:"run_id"`
 	Name    string          `json:"name"`
-	Content []byte          `json:"string"`
+	Content string          `json:"content"`
 	Steps   []*HttpStepForm `json:"steps"`
 }
 

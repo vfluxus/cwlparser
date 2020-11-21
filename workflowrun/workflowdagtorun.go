@@ -23,12 +23,12 @@ func generateTaskID(runID string, stepID string, stepWfName string) (taskID stri
 }
 
 // ConvertWorkflowDAGToRun ...
-func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userID string, runID int) (run *Run, err error) {
+func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userName string, runID int) (run *Run, err error) {
 	run = &Run{
-		RunID:   generateRunID(runID, userID),
-		RunName: wfDAG.Name,
-		UserID:  userID,
-		Status:  0,
+		RunID:    generateRunID(runID, userName),
+		RunName:  wfDAG.Name,
+		UserName: userName,
+		Status:   0,
 	}
 	var (
 		taskSl            = make([]*Task, len(wfDAG.Steps))

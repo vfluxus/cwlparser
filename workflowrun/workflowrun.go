@@ -4,7 +4,7 @@ type Run struct {
 	WorkflowID string  `json:"workflow_id"`
 	RunID      string  `json:"run_id"`
 	RunName    string  `json:"run_name"`
-	UserID     string  `json:"user_id"`
+	UserName   string  `json:"username"`
 	Status     int     `json:"status"`
 	Tasks      []*Task `json:"tasks"`
 }
@@ -15,7 +15,7 @@ type Task struct {
 	IsBoundary      bool              `json:"is_boundary"`
 	StepID          string            `json:"step_id"`
 	RunID           string            `json:"run_id"`
-	UserID          string            `json:"user_id"`
+	UserName        string            `json:"username"`
 	Command         string            `json:"command"`
 	ParamsWithRegex []*ParamWithRegex `json:"paramwithregex"`
 	ParentTasksID   []string          `json:"parent_tasks_id"`

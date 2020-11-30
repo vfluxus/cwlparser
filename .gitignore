@@ -16,3 +16,4 @@
 cwlparser
 test/demo-cwl
 test/test
+go.sum

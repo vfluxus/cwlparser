@@ -1,20 +1,16 @@
 package workflowrun
 
 type Run struct {
-	WorkflowID string  `json:"workflow_id"`
-	RunID      string  `json:"run_id"`
-	RunName    string  `json:"run_name"`
-	UserName   string  `json:"username"`
-	Status     int     `json:"status"`
-	Tasks      []*Task `json:"tasks"`
+	RunID    int     `json:"run_id"`
+	RunName  string  `json:"run_name"`
+	UserName string  `json:"username"`
+	Tasks    []*Task `json:"tasks"`
 }
 
 type Task struct {
 	TaskID          string            `json:"task_id"`
 	TaskName        string            `json:"task_name"`
-	IsBoundary      bool              `json:"is_boundary"`
-	StepID          string            `json:"step_id"`
-	RunID           string            `json:"run_id"`
+	StepID          string            `json:"-"`
 	UserName        string            `json:"username"`
 	Command         string            `json:"command"`
 	ParamsWithRegex []*ParamWithRegex `json:"paramwithregex"`
@@ -22,6 +18,8 @@ type Task struct {
 	ChildrenTasksID []string          `json:"children_tasks_id"`
 	OutputLocation  []string          `json:"output_location"`
 	DockerImage     []string          `json:"docker_image"`
+	IsBoundary      bool              `json:"is_boundary"`
+	RunID           int               `json:"run_id"`
 	QueueLevel      int               `json:"queue_level"`
 	Status          int               `json:"status"`
 }

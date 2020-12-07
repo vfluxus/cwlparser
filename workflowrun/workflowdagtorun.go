@@ -9,26 +9,20 @@ import (
 	"github.com/vfluxus/cwlparser/workflowdag"
 )
 
-// generateRunID remove behind @ from userid, get letter & lowercases
-func generateRunID(runid int, userid string) (runID string) {
-	if id := strings.Index(userid, "@"); id > 0 {
-		userid = userid[:id]
+func generateTaskID(runID int, username string, stepID string, stepWfName string) (taskID string) {
+	if id := strings.Index(username, "@"); id > 0 {
+		username = username[:id]
 	}
 
-	return strconv.Itoa(runid) + "-" + libs.GetLowerLetters(userid)
-}
-
-func generateTaskID(runID string, stepID string, stepWfName string) (taskID string) {
-	return runID + "-" + stepID + "-" + libs.GetLowerLetters(stepWfName)
+	return strconv.Itoa(runID) + "-" + libs.GetLowerLetters(username) + "-" + stepID + "-" + libs.GetLowerLetters(stepWfName)
 }
 
 // ConvertWorkflowDAGToRun ...
 func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userName string, runID int) (run *Run, err error) {
 	run = &Run{
-		RunID:    generateRunID(runID, userName),
+		RunID:    runID,
 		RunName:  wfDAG.Name,
 		UserName: userName,
-		Status:   0,
 	}
 	var (
 		taskSl            = make([]*Task, len(wfDAG.Steps))
@@ -36,7 +30,7 @@ func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userName string, ru
 	)
 
 	for stepIndex := range wfDAG.Steps {
-		newTask, err := convertFromStepDAGToTask(wfDAG.Steps[stepIndex], generateTaskID(run.RunID, wfDAG.Steps[stepIndex].ID, wfDAG.Steps[stepIndex].WorkflowName), wfDAG.Steps[stepIndex].WorkflowName)
+		newTask, err := convertFromStepDAGToTask(wfDAG.Steps[stepIndex], generateTaskID(run.RunID, userName, wfDAG.Steps[stepIndex].ID, wfDAG.Steps[stepIndex].WorkflowName), wfDAG.Steps[stepIndex].WorkflowName)
 		if err != nil {
 			return nil, err
 		}
@@ -90,11 +84,11 @@ func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userName string, ru
 func addBoundary(run *Run) {
 	var (
 		start = &Task{
-			TaskID:     run.RunID + "-" + "bigbang",
+			TaskID:     strconv.Itoa(run.RunID) + "-" + "bigbang",
 			IsBoundary: true,
 		}
 		end = &Task{
-			TaskID:     run.RunID + "-" + "ragnarok",
+			TaskID:     strconv.Itoa(run.RunID) + "-" + "ragnarok",
 			IsBoundary: true,
 		}
 	)

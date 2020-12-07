@@ -216,3 +216,4 @@ baseCommand: [string]
 
 ## 7. Soon support:
 - Inputs index
+

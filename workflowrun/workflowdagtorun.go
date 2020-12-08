@@ -34,7 +34,9 @@ func ConvertWorkflowDAGToRun(wfDAG *workflowdag.WorkflowDAG, userName string, ru
 		if err != nil {
 			return nil, err
 		}
+		// add additional data
 		newTask.RunID = run.RunID
+		newTask.UserName = run.UserName
 
 		taskSl[stepIndex] = newTask
 		stepNameTaskIDMap[wfDAG.Steps[stepIndex].WorkflowName] = newTask.TaskID

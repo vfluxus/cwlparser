@@ -87,10 +87,12 @@ func addBoundary(run *Run) {
 	var (
 		start = &Task{
 			TaskID:     strconv.Itoa(run.RunID) + "-" + "bigbang",
+			RunID:      run.RunID,
 			IsBoundary: true,
 		}
 		end = &Task{
 			TaskID:     strconv.Itoa(run.RunID) + "-" + "ragnarok",
+			RunID:      run.RunID,
 			IsBoundary: true,
 		}
 	)

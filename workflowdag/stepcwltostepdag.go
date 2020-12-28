@@ -129,7 +129,7 @@ func separateSelfValueFrom(val string) (valFrom *valueFrom, err error) {
 
 	// remove all white spaces, (), $, \, ""
 	for valIndex := range val {
-		if val[valIndex] == ' ' || val[valIndex] == '(' || val[valIndex] == ')' || val[valIndex] == '$' || val[valIndex] == '\\' || string(val[valIndex]) == "\"" {
+		if val[valIndex] == ' ' || val[valIndex] == '(' || val[valIndex] == ')' || val[valIndex] == '$' || string(val[valIndex]) == "\"" {
 			continue
 		}
 		valueFromBuilder.WriteByte(val[valIndex])
@@ -146,6 +146,7 @@ func separateSelfValueFrom(val string) (valFrom *valueFrom, err error) {
 		}
 		if !switchFlag {
 			prefixBuilder.WriteString(separatedByPlus[separateIndex])
+			switchFlag = false
 			continue
 		}
 		postfixBuilder.WriteString(separatedByPlus[separateIndex])
@@ -244,7 +245,9 @@ func separateArgValueFrom(stepDAG *Step, arg *Argument, valueFrom string) (value
 
 		for stepInputIndex := range stepDAG.StepInput {
 			if inputName.String() == stepDAG.StepInput[stepInputIndex].WorkflowName || inputName.String() == stepDAG.StepInput[stepInputIndex].Name {
-				arg.Input = stepDAG.StepInput[stepInputIndex]
+				// create new to avoid duplicate when append regex
+				newStepInput := *stepDAG.StepInput[stepInputIndex]
+				arg.Input = &newStepInput
 				break
 			}
 		}

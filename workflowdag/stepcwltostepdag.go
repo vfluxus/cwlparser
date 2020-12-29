@@ -14,11 +14,11 @@ import (
 func ConvertStepCWLtoStepDAG(wfCWL *workflowcwl.WorkflowCWL, stepCWL *workflowcwl.Step, id string) (stepDAG *Step, err error) {
 	// check nil fields
 	if stepCWL.CommandLineTool == nil {
-		return nil, errors.New("CommandLineTool not exist")
+		return nil, errors.New(stepCWL.Name + ": CommandLineTool not exist")
 	}
 
 	if len(stepCWL.CommandLineTool.BaseCommand) == 0 {
-		return nil, errors.New("BaseCommand not exist")
+		return nil, errors.New(stepCWL.Name + ": BaseCommand not exist")
 	}
 
 	// easy convertable fields

@@ -14,6 +14,8 @@ type Task struct {
 	UserName        string            `json:"username"`
 	Command         string            `json:"command"`
 	ParamsWithRegex []*ParamWithRegex `json:"paramwithregex"`
+	OutputRegex     []string          `json:"output_regex"`
+	Output2ndFiles  []string          `json:"output_2nd_files"`
 	ParentTasksID   []string          `json:"parent_tasks_id"`
 	ChildrenTasksID []string          `json:"children_tasks_id"`
 	OutputLocation  []string          `json:"output_location"`

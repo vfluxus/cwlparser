@@ -51,5 +51,15 @@ func convertFromStepDAGToTask(step *workflowdag.Step, taskID string, taskName st
 
 	task.ParamsWithRegex = taskParamWithRegex
 
+	// build regex output
+	for stepOutputIndex := range step.StepOutput {
+		for regexIndex := range step.StepOutput[stepOutputIndex].Regex {
+			task.OutputRegex = append(task.OutputRegex, step.StepOutput[stepOutputIndex].Regex[regexIndex])
+		}
+		for secondFilesIndex := range step.StepOutput[stepOutputIndex].SecondaryFiles {
+			task.Output2ndFiles = append(task.Output2ndFiles, step.StepOutput[stepOutputIndex].SecondaryFiles[secondFilesIndex])
+		}
+	}
+
 	return task, nil
 }

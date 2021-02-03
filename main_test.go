@@ -51,7 +51,7 @@ func TestCmdLineTool(t *testing.T) {
 }
 
 func TestWorkflowCWL(t *testing.T) {
-	data, err := ioutil.ReadFile("/home/tpp/go/src/github.com/vfluxus/demo-cwl/wgs/wgs.cwl")
+	data, err := ioutil.ReadFile("/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes/wes.cwl")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,18 +62,6 @@ func TestWorkflowCWL(t *testing.T) {
 		t.Fatal(err)
 	}
 	libs.PrintJsonFormat(wfCwl)
-
-	data2, err2 := ioutil.ReadFile("/home/tpp/go/src/github.com/vfluxus/transformer/test/basic/1st-workflow.cwl")
-	if err2 != nil {
-		t.Fatal(err2)
-	}
-	var (
-		wfCwl2 = new(workflowcwl.WorkflowCWL)
-	)
-	if err2 := yaml.Unmarshal(data2, wfCwl2); err != nil {
-		t.Fatal(err2)
-	}
-	libs.PrintJsonFormat(wfCwl2)
 }
 
 func TestWorkflowCWLUnmarshal(t *testing.T) {
@@ -86,7 +74,7 @@ func TestWorkflowCWLUnmarshal(t *testing.T) {
 
 func TestConvertCWLToDAG(t *testing.T) {
 	newWorkflowCWL := new(workflowcwl.WorkflowCWL)
-	if err := newWorkflowCWL.Unmarshal("/home/tpp/go/src/github.com/vfluxus/demo-cwl/wgs", "wgs.cwl"); err != nil {
+	if err := newWorkflowCWL.Unmarshal("/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes", "wes.cwl"); err != nil {
 		t.Fatal(err)
 	}
 	newWorkflowDAG, err := workflowdag.ConvertFromCWL(newWorkflowCWL)
@@ -193,9 +181,9 @@ func TestAddOutputToInput(t *testing.T) {
 
 func TestConvertWorkflowDAGToRun(t *testing.T) {
 	var (
-		folder    = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wgs/"
-		cwlfile   = "wgs.cwl"
-		inputPath = "wgs.yml"
+		folder    = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes/"
+		cwlfile   = "wes.cwl"
+		inputPath = "wes.yml"
 		userID    = "0"
 		retry     = 0
 		data      = make(map[string]interface{})

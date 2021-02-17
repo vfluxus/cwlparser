@@ -341,9 +341,9 @@ func TestCreateGraphViz(t *testing.T) {
 
 func TestCreateGraphvizDot(t *testing.T) {
 	var (
-		folder    = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes/"
-		cwlfile   = "wes.cwl"
-		inputPath = "wes.yml"
+		folder    = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/bionet-dv/"
+		cwlfile   = "bionet.cwl"
+		inputPath = "bionet.yml"
 		userID    = "thanhpp18@gmail.com"
 		retry     = 0
 		data      = make(map[string]interface{})

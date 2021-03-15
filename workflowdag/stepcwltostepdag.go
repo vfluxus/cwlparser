@@ -23,12 +23,13 @@ func ConvertStepCWLtoStepDAG(wfCWL *workflowcwl.WorkflowCWL, stepCWL *workflowcw
 
 	// easy convertable fields
 	stepDAG = &Step{
-		ID:           id,
-		Name:         stepCWL.Run,
-		WorkflowName: stepCWL.Name,
-		ParentName:   stepCWL.Parents,
-		ChildrenName: stepCWL.Children,
-		BaseCommand:  stepCWL.CommandLineTool.BaseCommand,
+		ID:            id,
+		Name:          stepCWL.Run,
+		WorkflowName:  stepCWL.Name,
+		ScatterMethod: stepCWL.ScatterMethod,
+		ParentName:    stepCWL.Parents,
+		ChildrenName:  stepCWL.Children,
+		BaseCommand:   stepCWL.CommandLineTool.BaseCommand,
 	}
 
 	// add requirements
@@ -103,8 +104,12 @@ func convertStepInput(stepCWL *workflowcwl.Step) (newStepInputs []*stepInput, er
 			}
 		}
 
-		// add value from
+		// scatter
+		if stepCWL.Scatter == stepCWL.CommandLineTool.Inputs[inputIndex].WorkflowName {
+			newStepInput.Scatter = true
+		}
 
+		// add value from
 		newStepInputs = append(newStepInputs, newStepInput)
 	}
 	return newStepInputs, nil

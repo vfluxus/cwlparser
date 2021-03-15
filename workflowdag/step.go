@@ -9,20 +9,22 @@ type Step struct {
 		CPU int
 		Ram int
 	}
-	BaseCommand  []string
-	StepInput    []*stepInput
-	StepOutput   []*stepOutput
-	Arguments    []*Argument
-	ParentName   []string
-	ParentID     []string
-	ChildrenName []string
-	ChildrenID   []string
+	ScatterMethod string
+	BaseCommand   []string
+	StepInput     []*stepInput
+	StepOutput    []*stepOutput
+	Arguments     []*Argument
+	ParentName    []string
+	ParentID      []string
+	ChildrenName  []string
+	ChildrenID    []string
 }
 
 type stepInput struct {
 	Name           string
 	WorkflowName   string
 	From           string
+	Scatter        bool
 	Type           []string
 	SecondaryFiles []string
 	Value          []string

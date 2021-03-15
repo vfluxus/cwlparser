@@ -13,6 +13,7 @@ func convertFromStepDAGToTask(step *workflowdag.Step, taskID string, taskName st
 		TaskName:        taskName,
 		IsBoundary:      false,
 		StepID:          step.ID,
+		ScatterMethod:   step.ScatterMethod,
 		ChildrenTasksID: step.ChildrenName, // for later replacement
 		ParentTasksID:   step.ParentName,   // for later replacement
 		Command:         strings.Join(step.BaseCommand, " ") + " ",
@@ -42,6 +43,7 @@ func convertFromStepDAGToTask(step *workflowdag.Step, taskID string, taskName st
 		}
 		newParamWithRegex := &ParamWithRegex{
 			From:           from,
+			Scatter:        step.Arguments[argIndex].Input.Scatter,
 			SecondaryFiles: step.Arguments[argIndex].Input.SecondaryFiles,
 			Regex:          step.Arguments[argIndex].Input.Value,
 			Prefix:         step.Arguments[argIndex].Prefix,

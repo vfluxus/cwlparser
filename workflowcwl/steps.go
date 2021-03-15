@@ -14,6 +14,7 @@ type Step struct {
 	Name            string
 	Run             string
 	Scatter         string `yaml:"scatter"`
+	ScatterMethod   string `yaml:"scatterMethod"`
 	Parents         []string
 	Children        []string
 	In              stepIns  `yaml:"in"`

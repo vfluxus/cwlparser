@@ -13,6 +13,7 @@ type Task struct {
 	StepID          string            `json:"-"`
 	UserName        string            `json:"username"`
 	Command         string            `json:"command"`
+	ScatterMethod   string            `json:"scatter_method"`
 	ParamsWithRegex []*ParamWithRegex `json:"paramwithregex"`
 	OutputRegex     []string          `json:"output_regex"`
 	Output2ndFiles  []string          `json:"output_2nd_files"`
@@ -27,6 +28,7 @@ type Task struct {
 }
 
 type ParamWithRegex struct {
+	Scatter        bool     `json:"scatter"`
 	From           []string `json:"from"`
 	SecondaryFiles []string `json:"secondary_files"`
 	Regex          []string `json:"regex"`

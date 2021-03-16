@@ -22,7 +22,8 @@ type WorkflowCWL struct {
 }
 
 type requirement struct {
-	Class string `yaml:"class"`
+	Class                     string      `yaml:"class"`
+	ScatterFeatureRequirement interface{} `yaml:"ScatterFeatureRequirement"`
 }
 
 // Unmarshal ...

@@ -2,6 +2,7 @@ package cwlparser
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -66,7 +67,7 @@ func TestWorkflowCWL(t *testing.T) {
 
 func TestWorkflowCWLUnmarshal(t *testing.T) {
 	newWorkflowCWL := new(workflowcwl.WorkflowCWL)
-	if err := newWorkflowCWL.Unmarshal("/home/tpp/go/src/github.com/vfluxus/demo-cwl/wgs", "wgs.cwl"); err != nil {
+	if err := newWorkflowCWL.Unmarshal("/home/thanhpp/go/src/github.com/vfluxus/demo-cwl/CWL_scatter_example/", "pipeline_step4.cwl"); err != nil {
 		t.Fatal(err)
 	}
 	libs.PrintJsonFormat(newWorkflowCWL)
@@ -74,7 +75,7 @@ func TestWorkflowCWLUnmarshal(t *testing.T) {
 
 func TestConvertCWLToDAG(t *testing.T) {
 	newWorkflowCWL := new(workflowcwl.WorkflowCWL)
-	if err := newWorkflowCWL.Unmarshal("/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes", "wes.cwl"); err != nil {
+	if err := newWorkflowCWL.Unmarshal("/home/thanhpp/go/src/github.com/vfluxus/demo-cwl/CWL_scatter_example/", "pipeline_step4.cwl"); err != nil {
 		t.Fatal(err)
 	}
 	newWorkflowDAG, err := workflowdag.ConvertFromCWL(newWorkflowCWL)
@@ -181,10 +182,10 @@ func TestAddOutputToInput(t *testing.T) {
 
 func TestConvertWorkflowDAGToRun(t *testing.T) {
 	var (
-		folder    = "/home/tpp/go/src/github.com/vfluxus/demo-cwl/wes/"
-		cwlfile   = "wes.cwl"
-		inputPath = "wes.yml"
-		userID    = "0"
+		folder    = "/home/thanhpp/go/src/github.com/vfluxus/demo-cwl/CWL_scatter_example/"
+		cwlfile   = "pipeline_step4.cwl"
+		inputPath = "input.yml"
+		userID    = "thanhpp"
 		retry     = 0
 		data      = make(map[string]interface{})
 		err       error
@@ -380,4 +381,30 @@ func TestCreateGraphvizDot(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(dot)
+}
+
+func TestParseCWLInMem(t *testing.T) {
+	var (
+		jsonPath     string = "/home/thanhpp/go/src/github.com/vfluxus/demo-cwl/CWL_scatter_example/createjson.json"
+		jsonWorkflow        = new(workflowcwl.HttpCWLForm)
+	)
+
+	data, err := ioutil.ReadFile(jsonPath)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if err := json.Unmarshal(data, jsonWorkflow); err != nil {
+		t.Error(err)
+		return
+	}
+
+	wf, err := ParseCWLInMem(jsonWorkflow)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	libs.PrintJsonFormat(wf)
 }

@@ -105,8 +105,10 @@ func convertStepInput(stepCWL *workflowcwl.Step) (newStepInputs []*stepInput, er
 		}
 
 		// scatter
-		if stepCWL.Scatter == stepCWL.CommandLineTool.Inputs[inputIndex].WorkflowName {
-			newStepInput.Scatter = true
+		for i := range stepCWL.Scatter {
+			if stepCWL.Scatter[i] == stepCWL.CommandLineTool.Inputs[inputIndex].Name {
+				newStepInput.Scatter = true
+			}
 		}
 
 		// add value from

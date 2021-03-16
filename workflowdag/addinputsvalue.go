@@ -64,8 +64,37 @@ func checkTypeAndAddValue(val interface{}, valType []string) (valStr []string, e
 		return append(valStr, valCast...), nil
 
 	case []interface{}:
-		if err := libs.AppendStringSliceWithInterface(&valStr, valCast); err != nil {
-			return nil, err
+		for i := range valCast {
+			switch valCastElement := valCast[i].(type) {
+			case string:
+				if err := libs.AppendStringSliceWithInterface(&valStr, valCast); err != nil {
+					return nil, err
+				}
+				return valStr, nil
+
+			case map[interface{}]interface{}:
+				var (
+					fileFlag bool = false
+				)
+				if class, ok := valCastElement["class"]; ok {
+					switch classCast := class.(type) {
+					case string:
+						if classCast == "File" {
+							fileFlag = true
+						}
+
+						if fileFlag {
+							if path, ok := valCastElement["path"]; ok {
+								if err := libs.AppendStringSliceWithInterface(&valStr, path); err != nil {
+									return nil, err
+								}
+								continue
+							}
+							return nil, fmt.Errorf("path not found in: %v", valCast)
+						}
+					}
+				}
+			}
 		}
 		return valStr, nil
 

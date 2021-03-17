@@ -34,3 +34,103 @@ type ParamWithRegex struct {
 	Regex          []string `json:"regex"`
 	Prefix         string   `json:"prefix"`
 }
+
+type NewRun struct {
+	WorkflowID   string
+	WorkflowUUID string
+	Username     string
+	State        string
+	Tasks        []struct {
+		TaskID     string
+		TaskUUID   string
+		TaskName   string
+		IsBoundary bool
+
+		StepID   string
+		StepName string
+
+		DockerImage string
+
+		State string
+
+		ParentIDs     []string
+		ParentUUIDs   []string
+		ChildrenIDs   []string
+		ChildrenUUIDs []string
+
+		ScatterMethod     string
+		ScatterParamNames []string
+
+		Command []string // joins + " "
+
+		Params []struct {
+			Name           string
+			From           string
+			Prefix         string
+			IsScatter      bool
+			SecondaryFiles []string
+			Patterns       []string
+			Values         []struct {
+				IsFile    bool
+				FileSizes []int64
+				Values    []string
+			}
+		}
+
+		Outputs []struct {
+			Name           string
+			Patterns       []string
+			SecondaryFiles []string
+		}
+	}
+}
+
+type NewTask struct {
+	TaskID     string
+	TaskUUID   string
+	TaskName   string
+	IsBoundary bool
+
+	StepID   string
+	StepName string
+
+	DockerImage string
+
+	State string
+
+	ParentIDs     []string
+	ParentUUIDs   []string
+	ChildrenIDs   []string
+	ChildrenUUIDs []string
+
+	ScatterMethod string
+	ScatterParam  []string
+
+	Command []string // joins + " "
+
+	Params []Param
+
+	Outputs []Output
+}
+
+type Param struct {
+	Name           string
+	From           string
+	Prefix         string
+	IsScatter      bool
+	SecondaryFiles []string
+	Patterns       []string
+	Values         []Value
+}
+
+type Value struct {
+	IsFile    bool
+	FileSizes []int64
+	Values    []string
+}
+
+type Output struct {
+	Name           string
+	Patterns       []string
+	SecondaryFiles []string
+}

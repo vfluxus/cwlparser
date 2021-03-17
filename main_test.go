@@ -75,7 +75,7 @@ func TestWorkflowCWLUnmarshal(t *testing.T) {
 
 func TestConvertCWLToDAG(t *testing.T) {
 	newWorkflowCWL := new(workflowcwl.WorkflowCWL)
-	if err := newWorkflowCWL.Unmarshal("/home/thanhpp/go/src/github.com/vfluxus/demo-cwl/CWL_scatter_example/", "pipeline_step4.cwl"); err != nil {
+	if err := newWorkflowCWL.Unmarshal("/home/thanhpp/go/src/github.com/vfluxus/demo-cwl/scatter/", "scatter-wf.cwl"); err != nil {
 		t.Fatal(err)
 	}
 	newWorkflowDAG, err := workflowdag.ConvertFromCWL(newWorkflowCWL)
@@ -182,8 +182,8 @@ func TestAddOutputToInput(t *testing.T) {
 
 func TestConvertWorkflowDAGToRun(t *testing.T) {
 	var (
-		folder    = "/home/thanhpp/go/src/github.com/vfluxus/demo-cwl/CWL_scatter_example/"
-		cwlfile   = "pipeline_step4.cwl"
+		folder    = "/home/thanhpp/go/src/github.com/vfluxus/demo-cwl/scatter/"
+		cwlfile   = "scatter-wf.cwl"
 		inputPath = "input.yml"
 		userID    = "thanhpp"
 		retry     = 0
